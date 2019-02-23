@@ -3,6 +3,7 @@
 /gnucash
 /py3bindings
 /secrets
+credentials.json
 **/out/
 **/logs/
 **/venv/
