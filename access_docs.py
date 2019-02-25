@@ -1,23 +1,10 @@
 #
-# createGnucashTxs.py -- parse a Monarch record, possibly from a json file,
-#                        create Gnucash transactions from the data
-#                        and write to a Gnucash file
+# access_docs.py -- access Google documents using the Google API's
 #
-# Copyright (c) 2018, 2019 Mark Sattolo <epistemik@gmail.com>
+# @author Google
+# @revised Mark Sattolo <epistemik@gmail.com>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# @author Mark Sattolo <epistemik@gmail.com>
-#
-'''
+"""
 from __future__ import print_function
 from apiclient import discovery
 from httplib2 import Http
@@ -45,7 +32,7 @@ service = discovery.build('docs', 'v1', http=creds.authorize(
 # Do a document "get" request and print the results as formatted JSON
 result = service.documents().get(documentId=DOCUMENT_ID).execute()
 print(json.dumps(result, indent=4, sort_keys=True))
-'''
+"""
 from __future__ import print_function
 
 import pickle
@@ -58,19 +45,20 @@ from google.auth.transport.requests import Request
 
 from mhs_google_config import *
 
-DOCUMENT_ID = CURRENT_READING_DOC
+DOCUMENT_ID = READING_DOC
 CURRENT_SCOPE = DOCS_RW_SCOPE
+TOKEN = DOCS_EPISTEMIK_RW_TOKEN
+
 
 def main():
     """
-    Shows basic usage of the Docs API.
-    Prints the title of a sample document.
+    Get the title and/or body of a specified Google document
     """
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    if os.path.exists(TOKEN):
+        with open(TOKEN, 'rb') as token:
             creds = pickle.load(token)
 
     # If there are no (valid) credentials available, let the user log in.
@@ -81,7 +69,7 @@ def main():
             flow = InstalledAppFlow.from_client_secrets_file('credentials.json', CURRENT_SCOPE)
             creds = flow.run_local_server()
         # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
+        with open(TOKEN, 'wb') as token:
             pickle.dump(creds, token)
 
     service = build('docs', 'v1', credentials=creds)
