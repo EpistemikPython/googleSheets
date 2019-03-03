@@ -2,7 +2,8 @@
 # access_docs.py -- access Google documents using the Google API's
 #
 # @author Google
-# @revised Mark Sattolo <epistemik@gmail.com>
+# @modified Mark Sattolo <epistemik@gmail.com>
+# @revised 2019-03-02
 #
 """
 from __future__ import print_function
@@ -33,11 +34,11 @@ service = discovery.build('docs', 'v1', http=creds.authorize(
 result = service.documents().get(documentId=DOCUMENT_ID).execute()
 print(json.dumps(result, indent=4, sort_keys=True))
 """
-from __future__ import print_function
 
 import pickle
-import os.path
+import os.path as osp
 import json
+import datetime as dt
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -49,6 +50,8 @@ DOCUMENT_ID = READING_DOC
 CURRENT_SCOPE = DOCS_RW_SCOPE
 TOKEN = DOCS_EPISTEMIK_RW_TOKEN
 
+now = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d_%H-%M-%S")
+
 
 def main():
     """
@@ -57,7 +60,7 @@ def main():
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first time.
-    if os.path.exists(TOKEN):
+    if osp.exists(TOKEN):
         with open(TOKEN, 'rb') as token:
             creds = pickle.load(token)
 
@@ -66,7 +69,7 @@ def main():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', CURRENT_SCOPE)
+            flow = InstalledAppFlow.from_client_secrets_file('secrets/credentials.json', CURRENT_SCOPE)
             creds = flow.run_local_server()
         # Save the credentials for the next run
         with open(TOKEN, 'wb') as token:
@@ -76,11 +79,19 @@ def main():
     # Retrieve the documents contents from the Docs service.
     document = service.documents().get(documentId = DOCUMENT_ID).execute()
 
-    print('The title of the document is: {}'.format(document.get('title')))
+    doc_title = document.get('title')
+    print("The title of the document is: {}".format(doc_title))
     # print('The body of the document is: {}'.format(document.get('body')))
 
     # Do a document "get" request and print the results as formatted JSON
-    print(json.dumps(document, indent=4))
+    # print(json.dumps(document, indent=4))
+
+    # print record as json file
+    # add a timestamp to get a unique file name
+    out_file = doc_title + '.' + now + ".json"
+    print("out_file is '{}'".format(out_file))
+    fp = open(out_file, 'w')
+    json.dump(document, fp, indent=4)
 
 
 if __name__ == '__main__':

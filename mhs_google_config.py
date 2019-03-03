@@ -2,6 +2,7 @@
 # mhs_google_config.py -- constants for Google API's to access files
 #
 # @author Mark Sattolo <epistemik@gmail.com>
+# @revised 2019-03-02
 #
 
 # If modifying these scopes, delete the file 'token.pickle'
