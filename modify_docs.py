@@ -105,7 +105,7 @@ def main():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('secrets/credentials.json', CURRENT_SCOPE)
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS, CURRENT_SCOPE)
             creds = flow.run_local_server()
         # Save the credentials for the next run
         with open(TOKEN, 'wb') as token:
@@ -114,8 +114,10 @@ def main():
     service = build('docs', 'v1', credentials=creds)
 
     # send the modifications
-    document = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests}).execute()
-    print("The return of the document update operation is: {}".format(json.dumps(document, indent=4)))
+    reply = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests}).execute()
+
+    # show the reply message
+    print("The reply of the document update operation is: {}".format(json.dumps(reply, indent=4)))
 
 
 if __name__ == '__main__':

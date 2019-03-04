@@ -5,6 +5,8 @@
 # @revised 2019-03-02
 #
 
+CREDENTIALS = 'secrets/credentials.json'
+
 # If modifying these scopes, delete the file 'token.pickle'
 DOCS_RO_SCOPE = ['https://www.googleapis.com/auth/documents.readonly']
 DOCS_RW_SCOPE = ['https://www.googleapis.com/auth/documents']

@@ -69,7 +69,7 @@ def main():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('secrets/credentials.json', CURRENT_SCOPE)
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS, CURRENT_SCOPE)
             creds = flow.run_local_server()
         # Save the credentials for the next run
         with open(TOKEN, 'wb') as token:
