@@ -2,7 +2,7 @@
 # mhs_google_config.py -- constants for Google API's to access files
 #
 # @author Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-03
+# @revised 2019-03-08
 #
 
 CREDENTIALS = 'secrets/credentials.json'
