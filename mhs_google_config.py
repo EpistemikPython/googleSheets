@@ -2,7 +2,7 @@
 # mhs_google_config.py -- constants for Google API's to access files
 #
 # @author Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-02
+# @revised 2019-03-03
 #
 
 CREDENTIALS = 'secrets/credentials.json'
@@ -34,3 +34,5 @@ READING_DOC         = '1TeFPDuI1ergAi4RAifoht6XkM-QA-kxdL98eYKEOM6k'
 
 # my spreadsheets
 BUDGET_QTRLY_SHEET = '1YbHb7RjZUlA2gyaGDVgRoQYhjs9I8gndKJ0f1Cn-Zr0'
+# 'sheet!start_cell:end_cell'
+BUDGET_QTRLY_SAMPLE_RANGE = 'All Inc Quarterly!B1:Q10'

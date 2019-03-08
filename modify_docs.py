@@ -3,37 +3,10 @@
 #
 # @author Google
 # @modified Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-02
+# @revised 2019-03-04
 #
-"""
+
 from __future__ import print_function
-from apiclient import discovery
-from httplib2 import Http
-from oauth2client import client
-from oauth2client import file
-from oauth2client import tools
-import json
-
-# Set doc ID, as found at `https://docs.google.com/document/d/YOUR_DOC_ID/edit`
-DOCUMENT_ID=YOUR_DOC_ID
-
-# Set the scopes and discovery info
-SCOPES = 'https://www.googleapis.com/auth/documents.readonly'
-DISCOVERY_DOC = 'https://docs.googleapis.com/$discovery/rest?version=v1&key=<YOUR_API_KEY>'
-
-# Initialize credentials and instantiate Docs API service
-store = file.Storage('token.json')
-creds = store.get()
-if not creds or creds.invalid:
-    flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
-    creds = tools.run_flow(flow, store)
-service = discovery.build('docs', 'v1', http=creds.authorize(
-    Http()), discoveryServiceUrl=DISCOVERY_DOC)
-
-# Do a document "get" request and print the results as formatted JSON
-result = service.documents().get(documentId=DOCUMENT_ID).execute()
-print(json.dumps(result, indent=4, sort_keys=True))
-"""
 
 import pickle
 import os.path as osp
@@ -57,7 +30,7 @@ requests = [
     {
         'insertText': {
             'location': {
-                'index': 28,
+                'index': 27,
             },
             'text': "\tauthor of Paradise Lost\n"
         }
@@ -65,7 +38,7 @@ requests = [
     {
         'insertText': {
             'location': {
-                'index': 28,
+                'index': 27,
             },
             'text': "\t1608 - 1674\n"
         }
@@ -73,7 +46,7 @@ requests = [
     {
         'insertText': {
             'location': {
-                'index': 28,
+                'index': 27,
             },
             'text': "\tJohn Milton:\n"
         }
@@ -81,9 +54,122 @@ requests = [
     {
         'insertText': {
             'location': {
-                'index': 28,
+                'index': 27,
             },
             'text': "\t{}\n".format(now)
+        }
+    }
+]
+
+# example formatting changes
+requests1 = [
+    {
+        'updateTextStyle': {
+            'range': {
+                'startIndex': 27,
+                'endIndex': 48
+            },
+            'textStyle': {
+                'bold': True,
+                'italic': True
+            },
+            'fields': 'bold,italic'
+        }
+    },
+    {
+        'updateTextStyle': {
+            'range': {
+                'startIndex': 48,
+                'endIndex': 62
+            },
+            'textStyle': {
+                'weightedFontFamily': {
+                    'fontFamily': 'Times New Roman'
+                },
+                'fontSize': {
+                    'magnitude': 14,
+                    'unit': 'PT'
+                },
+                'foregroundColor': {
+                    'color': {
+                        'rgbColor': {
+                            'blue': 1.0,
+                            'green': 0.0,
+                            'red': 0.0
+                        }
+                    }
+                }
+            },
+            'fields': 'foregroundColor,weightedFontFamily,fontSize'
+        }
+    },
+    {
+        'updateTextStyle': {
+            'range': {
+                'startIndex': 62,
+                'endIndex': 75
+            },
+            'textStyle': {
+                'link': {
+                    'url': 'www.example.com'
+                }
+            },
+            'fields': 'link'
+        }
+    }
+]
+
+# example paragraph style changes
+requests2 = [
+    {
+        'updateParagraphStyle': {
+            'range': {
+                'startIndex': 75,
+                'endIndex': 111
+            },
+            'paragraphStyle': {
+                'namedStyleType': 'HEADING_1',
+                'spaceAbove': {
+                    'magnitude': 10.0,
+                    'unit': 'PT'
+                },
+                'spaceBelow': {
+                    'magnitude': 10.0,
+                    'unit': 'PT'
+                }
+            },
+            'fields': 'namedStyleType,spaceAbove,spaceBelow'
+        }
+    },
+    {
+        'updateParagraphStyle': {
+            'range': {
+                'startIndex': 111,
+                'endIndex': 157
+            },
+            'paragraphStyle': {
+                'borderLeft': {
+                    'color': {
+                        'color': {
+                            'rgbColor': {
+                                'blue': 1.0,
+                                'green': 0.0,
+                                'red': 0.0
+                            }
+                        }
+                    },
+                    'dashStyle': 'DASH',
+                    'padding': {
+                        'magnitude': 20.0,
+                        'unit': 'PT'
+                    },
+                    'width': {
+                        'magnitude': 15.0,
+                        'unit': 'PT'
+                    },
+                }
+            },
+            'fields': 'borderLeft'
         }
     }
 ]
@@ -91,7 +177,7 @@ requests = [
 
 def main():
     """
-    Get the title and/or body of a specified Google document
+    Modify the text and/or formatting of a specified Google document
     """
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -113,11 +199,20 @@ def main():
 
     service = build('docs', 'v1', credentials=creds)
 
-    # send the modifications
+    # send the extra text
     reply = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests}).execute()
-
     # show the reply message
     print("The reply of the document update operation is: {}".format(json.dumps(reply, indent=4)))
+
+    # send the text formatting changes
+    reply1 = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests1}).execute()
+    # show the reply message
+    print("The reply of the text formatting operation is: {}".format(json.dumps(reply1, indent=4)))
+
+    # send the paragraph formatting changes
+    reply2 = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests2}).execute()
+    # show the reply message
+    print("The reply of the paragraph formatting operation is: {}".format(json.dumps(reply2, indent=4)))
 
 
 if __name__ == '__main__':
