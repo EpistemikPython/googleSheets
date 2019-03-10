@@ -53,44 +53,50 @@ def main():
 
     # Call the Sheets API
     srv_sheets = service.spreadsheets()
+    sheet = srv_sheets.get(spreadsheetId=SPREADSHEET_ID).execute()
+    props = sheet.get('properties')
 
-    def retrieve_sheet():
-        # Do a document "get" request and print the results as formatted JSON
-        sheet = srv_sheets.get(spreadsheetId = SPREADSHEET_ID).execute()
-        # print(json.dumps(document, indent=4))
+    sheet_title = props.get('title')
+    if sheet_title is None:
+        sheet_title = 'MHS_Spreadsheet'
 
-        sheet_title = sheet.get('properties').get('title')
-        if sheet_title is None:
-            sheet_title = 'MHS_Spreadsheet'
-        print("The title of the spreadsheet is: {}".format(sheet_title))
-
+    def save_sheet():
         # print spreadsheet as json file -- add a timestamp to get a unique file name
         out_file = sheet_title + '.' + now + ".json"
-        print("out_file is '{}'".format(out_file))
-        fp = open(out_file, 'w')
-        json.dump(sheet, fp, indent=4)
+        print("\nSheet out_file is '{}'".format(out_file))
+        sfp = open(out_file, 'w')
+        json.dump(sheet, sfp, indent=4)
+        sfp.close()
+
+    def save_props():
+        # this DOES NOT WORK!?
+        # props = srv_sheets.properties().get(spreadsheetId = SPREADSHEET_ID).execute()
+
+        props_title = sheet_title + '-properties'
+
+        # print properties as json file -- add a timestamp to get a unique file name
+        out_file = props_title + '.' + now + ".json"
+        print("\nProps out_file is '{}'".format(out_file))
+        pfp = open(out_file, 'w')
+        json.dump(props, pfp, indent=4)
+        pfp.close()
 
     def retrieve_range():
         result = srv_sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=SHEET_RANGE).execute()
-        print("after result")
         values = result.get('values', [])
-        print("after values")
 
         if not values:
             print('No data found.')
         else:
-            print("after else")
-            # json.dumps(values, indent=4)
-            # print('Name, Major:')
+            print("\nRange [{}]:".format(SHEET_RANGE))
             for row in values:
-                # Print columns A and E, which correspond to indices 0 and 4.
-                # print('%s, %s' % (row[0], row[4]))
                 print(str(row))
 
-    # retrieve_sheet()
+    save_sheet()
+    save_props()
     retrieve_range()
 
-    print('PROGRAM ENDED.')
+    print('\nPROGRAM ENDED.')
 
 
 if __name__ == '__main__':
