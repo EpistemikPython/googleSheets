@@ -64,6 +64,8 @@ def main():
     fp = open(out_file, 'w')
     json.dump(document, fp, indent=4)
 
+    print('PROGRAM ENDED.')
+
 
 if __name__ == '__main__':
     main()

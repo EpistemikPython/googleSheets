@@ -214,6 +214,8 @@ def main():
     # show the reply message
     print("The reply of the paragraph formatting operation is: {}".format(json.dumps(reply2, indent=4)))
 
+    print('PROGRAM ENDED.')
+
 
 if __name__ == '__main__':
     main()
