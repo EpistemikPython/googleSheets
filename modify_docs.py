@@ -1,12 +1,11 @@
 #
-# access_docs.py -- access Google documents using the Google API's
+# modify_docs.py -- modify Google documents using the Google API's
 #
 # @author Google
 # @modified Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-07
+# @revised 2019-03-12
+# @version Python3.6
 #
-
-from __future__ import print_function
 
 import pickle
 import os.path as osp
@@ -21,9 +20,9 @@ from mhs_google_config import *
 
 DOCUMENT_ID = READING_DOC
 CURRENT_SCOPE = DOCS_RW_SCOPE
-TOKEN = DOCS_EPISTEMIK_RW_TOKEN
+TOKEN = DOCS_EPISTEMIK_RW_TOKEN['P4']
 
-now = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d_%H-%M-%S")
+now = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%dT%H-%M-%S")
 
 # simple test data
 requests = [
@@ -195,7 +194,7 @@ def main():
             creds = flow.run_local_server()
         # Save the credentials for the next run
         with open(TOKEN, 'wb') as token:
-            pickle.dump(creds, token)
+            pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
 
     service = build('docs', 'v1', credentials=creds)
 
