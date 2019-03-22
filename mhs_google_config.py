@@ -4,7 +4,7 @@
 # @author Mark Sattolo <epistemik@gmail.com>
 # @revised 2019-03-12
 # @version Python3.6
-#
+
 
 CREDENTIALS = 'secrets/credentials.json'
 
@@ -44,6 +44,14 @@ CURRENT_READING_DOC = '1VlYk7qu7DFarxYOwK78TeoxAbwA3gCjza751xlDBxzU'
 READING_DOC         = '1TeFPDuI1ergAi4RAifoht6XkM-QA-kxdL98eYKEOM6k'
 
 # my spreadsheets
-BUDGET_QTRLY_SHEET = '1YbHb7RjZUlA2gyaGDVgRoQYhjs9I8gndKJ0f1Cn-Zr0'
+BUDGET_QTRLY_SPD_SHEET = '1YbHb7RjZUlA2gyaGDVgRoQYhjs9I8gndKJ0f1Cn-Zr0'
+# sheet ids in Budget Quarterly
+BUDQTR_ALL_INC_SHEET  = '1581653901'
+BUDQTR_NEC_INC_SHEET  = '352534630'
+BUDQTR_BALANCE_SHEET  = '1092295261'
+BUDQTR_QTR_ASTS_SHEET = '1868004173'
+BUDQTR_ML_WORK_SHEET  = '1366666149'
+BUDQTR_CALCULNS_SHEET = '1533312865'
+
 # 'sheet!start_cell:end_cell'
 BUDGET_QTRLY_SAMPLE_RANGE = 'All Inc Quarterly!B1:Q10'

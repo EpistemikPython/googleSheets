@@ -29,7 +29,7 @@ from google.auth.transport.requests import Request
 
 from mhs_google_config import *
 
-DOCUMENT_ID = BUDGET_QTRLY_SHEET
+DOCUMENT_ID = BUDGET_QTRLY_SPD_SHEET
 CURRENT_SCOPE = SHEETS_RW_SCOPE
 CLIENT_SECRETS = 'secrets/credentials.json'
 

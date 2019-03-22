@@ -5,7 +5,7 @@
 # @modified Mark Sattolo <epistemik@gmail.com>
 # @revised 2019-03-12
 # @version Python3.6
-#
+
 
 import pickle
 import os.path as osp
@@ -18,7 +18,7 @@ from google.auth.transport.requests import Request
 
 from mhs_google_config import *
 
-SPREADSHEET_ID = BUDGET_QTRLY_SHEET
+SPREADSHEET_ID = BUDGET_QTRLY_SPD_SHEET
 SHEET_RANGE    = BUDGET_QTRLY_SAMPLE_RANGE
 CURRENT_SCOPE  = SHEETS_RW_SCOPE
 TOKEN = SHEETS_EPISTEMIK_RW_TOKEN['P4']
