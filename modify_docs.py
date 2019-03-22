@@ -25,7 +25,15 @@ TOKEN = DOCS_EPISTEMIK_RW_TOKEN['P4']
 now = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%dT%H-%M-%S")
 
 # simple test data
-requests = [
+extra_text = [
+    {
+        'insertText': {
+            'location': {
+                'index': 27,
+            },
+            'text': "\tForeign Secretary for the Commonwealth\n\n\n\n"
+        }
+    },
     {
         'insertText': {
             'location': {
@@ -60,8 +68,8 @@ requests = [
     }
 ]
 
-# example formatting changes
-requests1 = [
+# example text format changes
+text_style_updates = [
     {
         'updateTextStyle': {
             'range': {
@@ -92,8 +100,8 @@ requests1 = [
                 'foregroundColor': {
                     'color': {
                         'rgbColor': {
-                            'blue': 1.0,
-                            'green': 0.0,
+                            'blue': 0.0,
+                            'green': 1.0,
                             'red': 0.0
                         }
                     }
@@ -119,12 +127,12 @@ requests1 = [
 ]
 
 # example paragraph style changes
-requests2 = [
+pgraph_style_updates = [
     {
         'updateParagraphStyle': {
             'range': {
                 'startIndex': 75,
-                'endIndex': 111
+                'endIndex': 100
             },
             'paragraphStyle': {
                 'namedStyleType': 'HEADING_1',
@@ -143,17 +151,17 @@ requests2 = [
     {
         'updateParagraphStyle': {
             'range': {
-                'startIndex': 111,
-                'endIndex': 157
+                'startIndex': 100,
+                'endIndex': 140
             },
             'paragraphStyle': {
                 'borderLeft': {
                     'color': {
                         'color': {
                             'rgbColor': {
-                                'blue': 1.0,
+                                'blue': 0.0,
                                 'green': 0.0,
-                                'red': 0.0
+                                'red': 1.0
                             }
                         }
                     },
@@ -168,15 +176,15 @@ requests2 = [
                     },
                 }
             },
-            'fields': 'borderLeft'
+            'fields': 'borderLeft,borderRight'
         }
     }
 ]
 
 
-def main():
+def modify_docs_main():
     """
-    Modify the text and/or formatting of a specified Google document
+    Modify the text and/or styles of a specified Google document
     """
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -199,22 +207,22 @@ def main():
     service = build('docs', 'v1', credentials=creds)
 
     # send the extra text
-    reply = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests}).execute()
+    t_reply = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': extra_text}).execute()
     # show the reply message
-    print("The reply of the document update operation is: {}".format(json.dumps(reply, indent=4)))
+    print("The reply of the document update operation is: {}".format(json.dumps(t_reply, indent=4)))
 
     # send the text formatting changes
-    reply1 = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests1}).execute()
+    f_reply = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': text_style_updates}).execute()
     # show the reply message
-    print("The reply of the text formatting operation is: {}".format(json.dumps(reply1, indent=4)))
+    print("The reply of the text formatting operation is: {}".format(json.dumps(f_reply, indent=4)))
 
     # send the paragraph formatting changes
-    reply2 = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': requests2}).execute()
+    p_reply = service.documents().batchUpdate(documentId=DOCUMENT_ID, body={'requests': pgraph_style_updates}).execute()
     # show the reply message
-    print("The reply of the paragraph formatting operation is: {}".format(json.dumps(reply2, indent=4)))
+    print("The reply of the paragraph formatting operation is: {}".format(json.dumps(p_reply, indent=4)))
 
-    print('PROGRAM ENDED.')
+    print('\n >>> PROGRAM ENDED.')
 
 
 if __name__ == '__main__':
-    main()
+    modify_docs_main()
