@@ -2,7 +2,7 @@
 # mhs_google_config.py -- constants for Google API's to access files
 #
 # @author Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-12
+# @revised 2019-03-23
 # @version Python3.6
 
 
@@ -54,4 +54,5 @@ BUDQTR_ML_WORK_SHEET  = '1366666149'
 BUDQTR_CALCULNS_SHEET = '1533312865'
 
 # 'sheet!start_cell:end_cell'
-BUDGET_QTRLY_SAMPLE_RANGE = 'All Inc Quarterly!B1:Q10'
+BUDGET_QTRLY_READ_RANGE = 'All Inc Quarterly!B1:Q10'
+BUDGET_QTRLY_WRITE_RANGE = 'Calculations!A56'
