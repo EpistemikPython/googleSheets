@@ -10,6 +10,7 @@
 import pickle
 import os.path as osp
 import datetime as dt
+import json
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -127,8 +128,31 @@ body = {
     'requests': requests
 }
 
+# write values to two separate cells
+data = [
+    {
+        'range': 'Calculations!P47',
+        'values': [
+            [
+                '$7022.77'
+            ],
+            # Additional rows
+        ]
+    },
+    {
+        'range': 'Calculations!P49',
+        'values': [
+            [
+                '$8044.66'
+            ],
+            # Additional rows
+        ]
+    },
+    # Additional ranges to update ...
+]
 
-def main():
+
+def modify_sheets_main():
     """
     Copy a range of cells from one sheet to another, write new values &
     """
@@ -186,14 +210,26 @@ def main():
                              valueInputOption='USER_ENTERED', body=write_cell_body).execute()
         print("{} cells updated.".format(result.get('updatedCells')))
 
+    def write_two_cells():
+        my_body = {
+            'valueInputOption': 'USER_ENTERED',
+            'data': data
+        }
+        vals = srv_sheets.values()
+        result = vals.batchUpdate(spreadsheetId=SPREADSHEET_ID, body=my_body).execute()
+
+        print('{} cells updated!'.format(result.get('totalUpdatedCells')))
+        print(json.dumps(result, indent=4))
+
     # cut_and_paste()
     # copy_and_paste()
     # find_and_replace()
     # write_to_range()
-    write_to_cell()
+    # write_to_cell()
+    write_two_cells()
 
     print('\nPROGRAM ENDED.')
 
 
 if __name__ == '__main__':
-    main()
+    modify_sheets_main()
