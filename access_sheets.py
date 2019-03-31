@@ -2,10 +2,10 @@
 # access_sheets.py -- access Google spreadsheets using the Google API's
 #
 # @author Google
-# @modified Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-12
+# @revised Mark Sattolo <epistemik@gmail.com>
 # @version Python3.6
-
+# @created 2019-02-23
+# @updated 2019-03-12
 
 import pickle
 import os.path as osp
@@ -18,7 +18,7 @@ from google.auth.transport.requests import Request
 
 from mhs_google_config import *
 
-SPREADSHEET_ID = BUDGET_QTRLY_SPD_SHEET
+SPREADSHEET_ID = BUDGET_QTRLY_SPRD_SHEET
 SHEET_RANGE    = BUDGET_QTRLY_READ_RANGE
 CURRENT_SCOPE  = SHEETS_RW_SCOPE
 TOKEN = SHEETS_EPISTEMIK_RW_TOKEN['P4']

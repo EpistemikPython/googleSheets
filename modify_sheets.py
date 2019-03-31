@@ -2,9 +2,10 @@
 # access_sheets.py -- access Google spreadsheets using the Google API's
 #
 # @author Google
-# @modified Mark Sattolo <epistemik@gmail.com>
-# @revised 2019-03-23
+# @revised Mark Sattolo <epistemik@gmail.com>
 # @version Python3.6
+# @created 2019-03-23
+# @updated 2019-03-24
 
 
 import pickle
@@ -18,7 +19,7 @@ from google.auth.transport.requests import Request
 
 from mhs_google_config import *
 
-SPREADSHEET_ID = BUDGET_QTRLY_SPD_SHEET
+SPREADSHEET_ID = BUDGET_QTRLY_SPRD_SHEET
 SRC_SHEET_ID   = BUDQTR_ALL_INC_SHEET
 DEST_SHEET_ID  = BUDQTR_CALCULNS_SHEET
 
@@ -104,7 +105,7 @@ cut_body = {
     'requests': cut_paste_request
 }
 
-requests = []
+requests = list()
 # Change the spreadsheet's title.
 requests.append({
     'updateSpreadsheetProperties': {
