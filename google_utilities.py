@@ -1,7 +1,7 @@
 ##############################################################################################################################
 # coding=utf-8
 #
-# updateCommon.py -- useful constants, functions & classes for Google
+# google_utilities.py -- useful constants, functions & classes for Google
 #
 # some code from Google quickstart examples
 #
@@ -11,23 +11,32 @@ __author__ = 'Mark Sattolo'
 __author_email__ = 'epistemik@gmail.com'
 __python_version__ = 3.6
 __created__ = '2019-04-07'
-__updated__ = '2019-08-30'
+__updated__ = '2019-08-31'
 
-from sys import stdout
-from datetime import date, timedelta, datetime as dt
-from bisect import bisect_right
-from decimal import Decimal
-from math import log10
-from types import FrameType
-import csv
-import json
-import pickle
-import inspect
+import sys
+sys.path.append("/home/marksa/dev/git/Python/Utilities/")
 import os.path as osp
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
+import pickle
+from decimal import Decimal
 from google.auth.transport.requests import Request
-from gnucash import GncNumeric, Account, GncCommodity
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from python_utilities import *
+
+# sheet names in Budget Quarterly
+ALL_INC_SHEET:str    = 'All Inc 1'
+ALL_INC_2_SHEET:str  = 'All Inc 2'
+NEC_INC_SHEET:str    = 'Nec Inc 1'
+NEC_INC_2_SHEET:str  = 'Nec Inc 2'
+BAL_1_SHEET:str      = 'Balance 1'
+BAL_2_SHEET:str      = 'Balance 2'
+QTR_ASTS_SHEET:str   = 'Assets 1'
+QTR_ASTS_2_SHEET:str = 'Assets 2'
+ML_WORK_SHEET:str    = 'ML Work'
+CALCULNS_SHEET:str   = 'Calculations'
+
+# first data row in Budget-qtrly.gsht
+BASE_ROW:int = 3
 
 
 class GoogleUtilities:
