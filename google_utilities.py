@@ -43,7 +43,7 @@ class GoogleUtilities:
     def __init__(self):
         SattoLog.print_text("GoogleUtilities", GREEN)
 
-    my_color = CYAN
+    my_color:str = CYAN
 
     CREDENTIALS_FILE:str = 'secrets/credentials.json'
 
@@ -121,33 +121,32 @@ class GoogleUtilities:
         return creds
 
     @staticmethod
-    def send_data(mode:str, data:list) -> dict :
+    def send_data(data:list) -> dict :
         """
         Send the data list to the document
-        :param mode: '.?[send][1]'
         :param data: Gnucash data for each needed quarter
         :return: server response
         """
-        SattoLog.print_text("GoogleUtilities.send_data({})\n".format(mode), GoogleUtilities.my_color)
+        SattoLog.print_text("GoogleUtilities.send_data()\n", GoogleUtilities.my_color)
 
-        response = None
+        response = {'Response': 'None'}
         try:
             assets_body = {
                 'valueInputOption': 'USER_ENTERED',
                 'data': data
             }
 
-            if 'send' in mode:
-                creds = GoogleUtilities.get_credentials()
-                service = build('sheets', 'v4', credentials=creds)
-                vals = service.spreadsheets().values()
-                response = vals.batchUpdate(spreadsheetId=GoogleUtilities.get_budget_id(), body=assets_body).execute()
+            creds = GoogleUtilities.get_credentials()
+            service = build('sheets', 'v4', credentials=creds)
+            vals = service.spreadsheets().values()
+            response = vals.batchUpdate(spreadsheetId=GoogleUtilities.get_budget_id(), body=assets_body).execute()
 
-                SattoLog.print_text('{} cells updated!\n'.format(response.get('totalUpdatedCells')), GoogleUtilities.my_color)
+            SattoLog.print_text('{} cells updated!\n'.format(response.get('totalUpdatedCells')), GoogleUtilities.my_color)
 
-        except Exception as se:
-            SattoLog.print_warning("Exception: {}!".format(se))
-            exit(419)
+        except Exception as sde:
+            msg = repr(sde)
+            SattoLog.print_warning("Exception: {}!".format(msg))
+            response['Response'] = msg
 
         return response
 
