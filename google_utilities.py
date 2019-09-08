@@ -72,25 +72,25 @@ def fill_cell(sheet:str, col:str, row:int, val:FILL_CELL_VAL, data:list=None, lo
     return data
 
 
-def get_budget_id(logger:SattoLog=None) -> str :
+def __get_budget_id(logger:SattoLog=None) -> str :
     """
     get the budget id string from the file in the secrets folder
     """
-    # if logger: logger.print_info("get_budget_id()")
+    # if logger: logger.print_info("google_utilities.__get_budget_id()")
 
     fp = open(BUDGET_QTRLY_ID_FILE, "r")
     fid = fp.readline().strip()
-    if logger: logger.print_info("GGLU.get_budget_id(): Budget Id = '{}'\n".format(fid))
+    if logger: logger.print_info("GGLU.__get_budget_id(): Budget Id = '{}'\n".format(fid))
     fp.close()
 
     return fid
 
 
-def get_credentials(logger:SattoLog=None) -> pickle :
+def __get_credentials(logger:SattoLog=None) -> pickle :
     """
     get the proper credentials needed to write to the Google spreadsheet
     """
-    if logger: logger.print_info("google_utilities.get_credentials()")
+    if logger: logger.print_info("google_utilities.__get_credentials()")
 
     creds = None
     if osp.exists(GGL_SHEETS_TOKEN):
@@ -127,10 +127,10 @@ def send_sheets_data(data:list, logger:SattoLog=None) -> dict :
             'data': data
         }
 
-        creds = get_credentials()
+        creds = __get_credentials()
         service = build('sheets', 'v4', credentials=creds)
         vals = service.spreadsheets().values()
-        response = vals.batchUpdate(spreadsheetId=get_budget_id(), body=assets_body).execute()
+        response = vals.batchUpdate(spreadsheetId=__get_budget_id(), body=assets_body).execute()
 
         if logger: logger.print_info('{} cells updated!\n'.format(response.get('totalUpdatedCells')))
 
