@@ -7,147 +7,136 @@
 #
 # Copyright (c) 2019 Mark Sattolo <epistemik@gmail.com>
 #
+from typing import Union
+
 __author__ = 'Mark Sattolo'
 __author_email__ = 'epistemik@gmail.com'
 __python_version__ = 3.6
 __created__ = '2019-04-07'
-__updated__ = '2019-08-31'
+__updated__ = '2019-09-08'
 
-import sys
-sys.path.append("/home/marksa/dev/git/Python/Utilities/")
+from sys import path
+path.append("/home/marksa/dev/git/Python/Utilities/")
 import os.path as osp
 import pickle
 from decimal import Decimal
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from python_utilities import *
+from python_utilities import SattoLog
 
 # sheet names in Budget Quarterly
-ALL_INC_SHEET:str    = 'All Inc 1'
-ALL_INC_2_SHEET:str  = 'All Inc 2'
-NEC_INC_SHEET:str    = 'Nec Inc 1'
-NEC_INC_2_SHEET:str  = 'Nec Inc 2'
-BAL_1_SHEET:str      = 'Balance 1'
-BAL_2_SHEET:str      = 'Balance 2'
-QTR_ASTS_SHEET:str   = 'Assets 1'
-QTR_ASTS_2_SHEET:str = 'Assets 2'
-ML_WORK_SHEET:str    = 'ML Work'
-CALCULNS_SHEET:str   = 'Calculations'
+ML_WORK_SHEET:str  = 'ML Work'
+CALCULNS_SHEET:str = 'Calculations'
 
 # first data row in Budget-qtrly.gsht
 BASE_ROW:int = 3
 
+CREDENTIALS_FILE:str = 'secrets/credentials.json'
 
-class GoogleUtilities:
-    def __init__(self):
-        SattoLog.print_text("GoogleUtilities", GREEN)
+SHEETS_RW_SCOPE:list = ['https://www.googleapis.com/auth/spreadsheets']
 
-    my_color:str = CYAN
+SHEETS_EPISTEMIK_RW_TOKEN:dict = {
+    'P2' : 'secrets/token.sheets.epistemik.rw.pickle2' ,
+    'P3' : 'secrets/token.sheets.epistemik.rw.pickle3' ,
+    'P4' : 'secrets/token.sheets.epistemik.rw.pickle4'
+}
+GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P4']
 
-    CREDENTIALS_FILE:str = 'secrets/credentials.json'
+# Spreadsheet ID
+BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
 
-    SHEETS_RW_SCOPE:list = ['https://www.googleapis.com/auth/spreadsheets']
+FILL_CELL_VAL = Union[str, Decimal]
 
-    SHEETS_EPISTEMIK_RW_TOKEN:dict = {
-        'P2' : 'secrets/token.sheets.epistemik.rw.pickle2' ,
-        'P3' : 'secrets/token.sheets.epistemik.rw.pickle3' ,
-        'P4' : 'secrets/token.sheets.epistemik.rw.pickle4'
-    }
-    TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P4']
 
-    # Spreadsheet ID
-    BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
+def fill_cell(sheet:str, col:str, row:int, val:FILL_CELL_VAL, data:list=None, logger:SattoLog=None) -> list :
+    """
+    create a dict of update information for one Google Sheets cell and add to the submitted or created list
+    :param   sheet: particular sheet in my Google spreadsheet to update
+    :param     col: column to update
+    :param     row: to update
+    :param     val: str OR Decimal: value to fill with
+    :param    data: optional list to append with created dict
+    :param  logger: debug printing
+    """
+    # if logger: logger.print_info("fill_cell()")
 
-    @staticmethod
-    def fill_cell(sheet:str, col:str, row:int, val, data:list=None) -> list :
-        """
-        create a dict of update information for one Google Sheets cell and add to the submitted or created list
-        :param sheet:  particular sheet in my Google spreadsheet to update
-        :param   col:  column to update
-        :param   row:  to update
-        :param   val:  str OR Decimal: value to fill with
-        :param  data:  optional list to append with created dict
-        """
-        # SattoLog.print_text("GoogleUtilities.fill_cell()", GoogleUtilities.my_color)
+    if data is None:
+        data = list()
 
-        if data is None:
-            data = list()
+    value = val.to_eng_string() if isinstance(val, Decimal) else val
+    cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
+    if logger: logger.print_info("fill_cell() = {}\n".format(cell))
+    data.append(cell)
 
-        value = val.to_eng_string() if isinstance(val, Decimal) else val
-        cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
-        SattoLog.print_text("GoogleUtilities.fill_cell() = {}\n".format(cell), GoogleUtilities.my_color)
-        data.append(cell)
+    return data
 
-        return data
 
-    @staticmethod
-    def get_budget_id() -> str :
-        """
-        get the budget id string from the file in the secrets folder
-        """
-        SattoLog.print_text("GoogleUtilities.get_budget_id()", GoogleUtilities.my_color)
+def get_budget_id(logger:SattoLog=None) -> str :
+    """
+    get the budget id string from the file in the secrets folder
+    """
+    # if logger: logger.print_info("get_budget_id()")
 
-        fp = open(GoogleUtilities.BUDGET_QTRLY_ID_FILE, "r")
-        fid = fp.readline().strip()
-        SattoLog.print_text("Budget Id = '{}'\n".format(fid), GoogleUtilities.my_color)
-        fp.close()
-        return fid
+    fp = open(BUDGET_QTRLY_ID_FILE, "r")
+    fid = fp.readline().strip()
+    if logger: logger.print_info("GGLU.get_budget_id(): Budget Id = '{}'\n".format(fid))
+    fp.close()
 
-    @staticmethod
-    def get_credentials() -> pickle :
-        """
-        get the proper credentials needed to write to the Google spreadsheet
-        """
-        SattoLog.print_text("GoogleUtilities.get_credentials()", GoogleUtilities.my_color)
+    return fid
 
-        creds = None
-        if osp.exists(GoogleUtilities.TOKEN):
-            with open(GoogleUtilities.TOKEN, 'rb') as token:
-                creds = pickle.load(token)
 
-        # if there are no (valid) credentials available, let the user log in.
-        if creds is None or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(GoogleUtilities.CREDENTIALS_FILE,
-                                                                 GoogleUtilities.SHEETS_RW_SCOPE)
-                creds = flow.run_local_server()
-            # save the credentials for the next run
-            with open(GoogleUtilities.TOKEN, 'wb') as token:
-                pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
+def get_credentials(logger:SattoLog=None) -> pickle :
+    """
+    get the proper credentials needed to write to the Google spreadsheet
+    """
+    if logger: logger.print_info("google_utilities.get_credentials()")
 
-        return creds
+    creds = None
+    if osp.exists(GGL_SHEETS_TOKEN):
+        with open(GGL_SHEETS_TOKEN, 'rb') as token:
+            creds = pickle.load(token)
 
-    @staticmethod
-    def send_data(data:list) -> dict :
-        """
-        Send the data list to the document
-        :param data: Gnucash data for each needed quarter
-        :return: server response
-        """
-        SattoLog.print_text("GoogleUtilities.send_data()\n", GoogleUtilities.my_color)
+    # if there are no (valid) credentials available, let the user log in.
+    if creds is None or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SHEETS_RW_SCOPE)
+            creds = flow.run_local_server()
+        # save the credentials for the next run
+        with open(GGL_SHEETS_TOKEN, 'wb') as token:
+            pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
 
-        response = {'Response': 'None'}
-        try:
-            assets_body = {
-                'valueInputOption': 'USER_ENTERED',
-                'data': data
-            }
+    return creds
 
-            creds = GoogleUtilities.get_credentials()
-            service = build('sheets', 'v4', credentials=creds)
-            vals = service.spreadsheets().values()
-            response = vals.batchUpdate(spreadsheetId=GoogleUtilities.get_budget_id(), body=assets_body).execute()
 
-            SattoLog.print_text('{} cells updated!\n'.format(response.get('totalUpdatedCells')), GoogleUtilities.my_color)
+def send_sheets_data(data:list, logger:SattoLog=None) -> dict :
+    """
+    Send the data list to my Google sheets document
+    :param    data: data in Google format
+    :param logger: debug printing
+    :return: server response
+    """
+    if logger: logger.print_info("google_utilities.send_sheets_data()\n")
 
-        except Exception as sde:
-            msg = repr(sde)
-            SattoLog.print_warning("Exception: {}!".format(msg))
-            response['Response'] = msg
+    response = {'Response': 'None'}
+    try:
+        assets_body = {
+            'valueInputOption': 'USER_ENTERED',
+            'data': data
+        }
 
-        return response
+        creds = get_credentials()
+        service = build('sheets', 'v4', credentials=creds)
+        vals = service.spreadsheets().values()
+        response = vals.batchUpdate(spreadsheetId=get_budget_id(), body=assets_body).execute()
 
-# END class GoogleUtilities
+        if logger: logger.print_info('{} cells updated!\n'.format(response.get('totalUpdatedCells')))
+
+    except Exception as sde:
+        msg = repr(sde)
+        SattoLog.print_warning("Exception: {}!".format(msg))
+        response['Response'] = msg
+
+    return response
