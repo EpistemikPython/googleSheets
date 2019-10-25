@@ -11,7 +11,7 @@ __author__ = 'Mark Sattolo'
 __author_email__ = 'epistemik@gmail.com'
 __python_version__ = 3.6
 __created__ = '2019-04-07'
-__updated__ = '2019-09-10'
+__updated__ = '2019-10-25'
 
 from sys import path
 path.append("/home/marksa/dev/git/Python/Utilities/")
@@ -58,11 +58,11 @@ class GoogleUpdate:
 
     def _log(self, p_msg:str, p_color:str=''):
         if self._logger:
-            calling_frame = inspect.currentframe().f_back
-            self._logger.print_info(p_msg, p_color, p_frame=calling_frame)
+            self._logger.print_info(p_msg, p_color, p_frame=inspect.currentframe().f_back)
 
-    def _err(self, p_msg:str):
-        self._log(p_msg, BR_RED)
+    def _err(self, p_msg:str, err_frame:FrameType):
+        if self._logger:
+            self._logger.print_info(p_msg, BR_RED, p_frame=err_frame)
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
         """
@@ -76,18 +76,16 @@ class GoogleUpdate:
 
         value = val.to_eng_string() if isinstance(val, Decimal) else val
         cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
-        self._log("fill_cell() = {}\n".format(cell))
+        self._log(F"fill_cell() = {cell}\n")
         self.data.append(cell)
 
     def __get_budget_id(self) -> str :
         """
         get the budget id string from the file in the secrets folder
         """
-        self._log("google_utilities.__get_budget_id()")
-
         fp = open(BUDGET_QTRLY_ID_FILE, "r")
         fid = fp.readline().strip()
-        self._log("GGLU.__get_budget_id(): Budget Id = '{}'\n".format(fid))
+        self._log(F"GoogleUpdate.__get_budget_id(): Budget Id = {fid}\n")
         fp.close()
 
         return fid
@@ -96,7 +94,7 @@ class GoogleUpdate:
         """
         get the proper credentials needed to write to the Google spreadsheet
         """
-        self._log("google_utilities.__get_credentials()")
+        self._log("GoogleUpdate.__get_credentials()")
 
         creds = None
         if osp.exists(GGL_SHEETS_TOKEN):
@@ -121,7 +119,7 @@ class GoogleUpdate:
         Send the data list to my Google sheets document
         :return: server response
         """
-        self._log("google_utilities.send_sheets_data()\n")
+        self._log("GoogleUpdate.send_sheets_data()\n")
 
         response = {'Response': 'None'}
         try:
@@ -135,11 +133,11 @@ class GoogleUpdate:
             vals = service.spreadsheets().values()
             response = vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
 
-            self._log('{} cells updated!\n'.format(response.get('totalUpdatedCells')))
+            self._log(F"{response.get('totalUpdatedCells')} cells updated!\n")
 
         except Exception as sde:
             msg = repr(sde)
-            SattoLog.print_warning("Exception: {}!".format(msg))
+            self._err(F"GoogleUpdate.send_sheets_data() Exception: {msg}!", inspect.currentframe().f_back)
             response['Response'] = msg
 
         return response
