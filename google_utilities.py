@@ -11,16 +11,16 @@ __author__ = 'Mark Sattolo'
 __author_email__ = 'epistemik@gmail.com'
 __python_version__ = 3.6
 __created__ = '2019-04-07'
-__updated__ = '2019-10-25'
+__updated__ = '2019-10-26'
 
 from sys import path
-path.append("/home/marksa/dev/git/Python/Utilities/")
-import os.path as osp
+import os.path as os_path
 import pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
+path.append("/home/marksa/dev/git/Python/Utilities/")
 from python_utilities import *
 
 # sheet names in Budget Quarterly
@@ -47,7 +47,7 @@ BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
 FILL_CELL_VAL = Union[str, Decimal]
 
 
-# TODO: add a history sheet and keep a detailed record of every change
+# TODO: add a history sheet and keep a detailed record of every update
 class GoogleUpdate:
     def __init__(self, p_logger:SattoLog=None):
         self._logger = p_logger
@@ -97,7 +97,7 @@ class GoogleUpdate:
         self._log("GoogleUpdate.__get_credentials()")
 
         creds = None
-        if osp.exists(GGL_SHEETS_TOKEN):
+        if os_path.exists(GGL_SHEETS_TOKEN):
             with open(GGL_SHEETS_TOKEN, 'rb') as token:
                 creds = pickle.load(token)
 
