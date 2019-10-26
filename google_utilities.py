@@ -13,7 +13,7 @@ __python_version__ = 3.6
 __created__ = '2019-04-07'
 __updated__ = '2019-10-26'
 
-from sys import path
+from sys import path, exc_info
 import os.path as os_path
 import pickle
 from google.auth.transport.requests import Request
@@ -58,11 +58,11 @@ class GoogleUpdate:
 
     def _log(self, p_msg:str, p_color:str=''):
         if self._logger:
-            self._logger.print_info(p_msg, p_color, p_frame=inspect.currentframe().f_back)
+            self._logger.print_info(p_msg, p_color, p_info=inspect.currentframe().f_back)
 
     def _err(self, p_msg:str, err_frame:FrameType):
         if self._logger:
-            self._logger.print_info(p_msg, BR_RED, p_frame=err_frame)
+            self._logger.print_info(p_msg, BR_RED, p_info=err_frame)
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
         """
@@ -137,7 +137,8 @@ class GoogleUpdate:
 
         except Exception as sde:
             msg = repr(sde)
-            self._err(F"GoogleUpdate.send_sheets_data() Exception: {msg}!", inspect.currentframe().f_back)
+            tb = exc_info()[2]
+            self._err(F"GoogleUpdate.send_sheets_data() Exception: {msg}!", tb)
             response['Response'] = msg
 
         return response
