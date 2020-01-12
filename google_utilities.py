@@ -5,13 +5,14 @@
 #
 # some code from Google quickstart examples
 #
-# Copyright (c) 2019 Mark Sattolo <epistemik@gmail.com>
+# Copyright (c) 2020 Mark Sattolo <epistemik@gmail.com>
 #
 __author__ = 'Mark Sattolo'
 __author_email__ = 'epistemik@gmail.com'
-__python_version__ = 3.6
+__python_version__  = 3.9
+__gnucash_version__ = 3.8
 __created__ = '2019-04-07'
-__updated__ = '2019-10-26'
+__updated__ = '2020-01-11'
 
 from sys import path, exc_info
 import os.path as os_path
@@ -114,6 +115,7 @@ class GoogleUpdate:
 
         return creds
 
+    # noinspection PyTypeChecker
     def send_sheets_data(self) -> dict :
         """
         Send the data list to my Google sheets document
