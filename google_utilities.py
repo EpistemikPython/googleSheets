@@ -16,7 +16,7 @@ __updated__ = '2020-01-11'
 
 from sys import path, exc_info
 import os.path as os_path
-import pickle
+import pickle5 as pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -111,7 +111,7 @@ class GoogleUpdate:
                 creds = flow.run_local_server()
             # save the credentials for the next run
             with open(GGL_SHEETS_TOKEN, 'wb') as token:
-                pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(creds, token, pickle.DEFAULT_PROTOCOL)
 
         return creds
 
