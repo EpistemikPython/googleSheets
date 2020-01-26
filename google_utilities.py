@@ -12,9 +12,9 @@ __author_email__ = 'epistemik@gmail.com'
 __python_version__  = 3.9
 __gnucash_version__ = 3.8
 __created__ = '2019-04-07'
-__updated__ = '2020-01-11'
+__updated__ = '2020-01-25'
 
-from sys import path, exc_info
+from sys import path
 import os.path as os_path
 import pickle5 as pickle
 from google.auth.transport.requests import Request
@@ -23,6 +23,8 @@ from googleapiclient.discovery import build
 from typing import Union
 path.append("/home/marksa/dev/git/Python/Utilities/")
 from python_utilities import *
+
+GOOGLE_BASENAME = 'UpdateGoogleSheet'
 
 # sheet names in Budget Quarterly
 ML_WORK_SHEET:str  = 'ML Work'
@@ -50,20 +52,12 @@ FILL_CELL_VAL = Union[str, Decimal]
 
 # TODO: add a history sheet and keep a detailed record of every update
 class GoogleUpdate:
-    def __init__(self, p_logger:SattoLog=None):
-        self._logger = p_logger
-        self.data = list()
+    def __init__(self, p_logger:lg.Logger):
+        self._lgr = p_logger
+        self._data = list()
 
     def get_data(self) -> list :
-        return self.data
-
-    def _log(self, p_msg:str, p_color:str=''):
-        if self._logger:
-            self._logger.print_info(p_msg, p_color, p_info=inspect.currentframe().f_back)
-
-    def _err(self, p_msg:str, err_frame:FrameType):
-        if self._logger:
-            self._logger.print_info(p_msg, BR_RED, p_info=err_frame)
+        return self._data
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
         """
@@ -73,12 +67,12 @@ class GoogleUpdate:
         :param   row: to update
         :param   val: str OR Decimal: value to fill with
         """
-        self._log("GoogleUpdate.fill_cell()")
+        self._lgr.info("GoogleUpdate.fill_cell()")
 
         value = val.to_eng_string() if isinstance(val, Decimal) else val
         cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
-        self._log(F"fill_cell() = {cell}\n")
-        self.data.append(cell)
+        self._lgr.info(F"fill_cell() = {cell}\n")
+        self._data.append(cell)
 
     def __get_budget_id(self) -> str :
         """
@@ -86,7 +80,7 @@ class GoogleUpdate:
         """
         fp = open(BUDGET_QTRLY_ID_FILE, "r")
         fid = fp.readline().strip()
-        self._log(F"GoogleUpdate.__get_budget_id(): Budget Id = {fid}\n")
+        self._lgr.info(F"GoogleUpdate.__get_budget_id(): Budget Id = {fid}\n")
         fp.close()
 
         return fid
@@ -95,7 +89,7 @@ class GoogleUpdate:
         """
         get the proper credentials needed to write to the Google spreadsheet
         """
-        self._log("GoogleUpdate.__get_credentials()")
+        self._lgr.info("GoogleUpdate.__get_credentials()")
 
         creds = None
         if os_path.exists(GGL_SHEETS_TOKEN):
@@ -121,13 +115,13 @@ class GoogleUpdate:
         Send the data list to my Google sheets document
         :return: server response
         """
-        self._log("GoogleUpdate.send_sheets_data()\n")
+        self._lgr.info("GoogleUpdate.send_sheets_data()\n")
 
         response = {'Response': 'None'}
         try:
             assets_body = {
                 'valueInputOption': 'USER_ENTERED',
-                'data': self.data
+                'data': self._data
             }
 
             creds = self.__get_credentials()
@@ -135,12 +129,11 @@ class GoogleUpdate:
             vals = service.spreadsheets().values()
             response = vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
 
-            self._log(F"{response.get('totalUpdatedCells')} cells updated!\n")
+            self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated!\n")
 
         except Exception as sde:
             msg = repr(sde)
-            tb = exc_info()[2]
-            self._err(F"GoogleUpdate.send_sheets_data() Exception: {msg}!", tb)
+            self._lgr.error(F"GoogleUpdate.send_sheets_data() Exception: {msg}!")
             response['Response'] = msg
 
         return response
