@@ -24,8 +24,6 @@ from typing import Union
 path.append("/home/marksa/dev/git/Python/Utilities/")
 from python_utilities import *
 
-GOOGLE_BASENAME = 'UpdateGoogleSheet'
-
 # sheet names in Budget Quarterly
 ML_WORK_SHEET:str  = 'ML Work'
 CALCULNS_SHEET:str = 'Calculations'
