@@ -12,7 +12,7 @@ __author_email__ = 'epistemik@gmail.com'
 __python_version__  = 3.9
 __gnucash_version__ = 3.8
 __created__ = '2019-04-07'
-__updated__ = '2020-01-25'
+__updated__ = '2020-01-27'
 
 from sys import path
 import os.path as os_path
@@ -23,6 +23,10 @@ from googleapiclient.discovery import build
 from typing import Union
 path.append("/home/marksa/dev/git/Python/Utilities/")
 from python_utilities import *
+
+# see https://github.com/googleapis/google-api-python-client/issues/299
+# build('drive', 'v3', http=http, cache_discovery=False)
+lg.getLogger('googleapiclient.discovery_cache').setLevel(lg.ERROR)
 
 # sheet names in Budget Quarterly
 ML_WORK_SHEET:str  = 'ML Work'
@@ -38,9 +42,10 @@ SHEETS_RW_SCOPE:list = ['https://www.googleapis.com/auth/spreadsheets']
 SHEETS_EPISTEMIK_RW_TOKEN:dict = {
     'P2' : 'secrets/token.sheets.epistemik.rw.pickle2' ,
     'P3' : 'secrets/token.sheets.epistemik.rw.pickle3' ,
-    'P4' : 'secrets/token.sheets.epistemik.rw.pickle4'
+    'P4' : 'secrets/token.sheets.epistemik.rw.pickle4' ,
+    'P5' : 'secrets/token.sheets.epistemik.rw.pickle5'
 }
-GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P4']
+GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
 
 # Spreadsheet ID
 BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
@@ -54,40 +59,40 @@ class GoogleUpdate:
         self._lgr = p_logger
         self._data = list()
 
-    def get_data(self) -> list :
+    def get_data(self) -> list:
         return self._data
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
         """
-        create a dict of update information for one Google Sheets cell and add to the submitted or created list
+        create the information to update a Google Sheets cell and add to the data list
         :param sheet: particular sheet in my Google spreadsheet to update
         :param   col: column to update
         :param   row: to update
         :param   val: str OR Decimal: value to fill with
         """
-        self._lgr.info("GoogleUpdate.fill_cell()")
+        self._lgr.debug("GoogleUpdate.fill_cell()")
 
         value = val.to_eng_string() if isinstance(val, Decimal) else val
         cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
-        self._lgr.info(F"fill_cell() = {cell}\n")
+        self._lgr.log(5, F"fill_cell() = {cell}\n")
         self._data.append(cell)
 
-    def __get_budget_id(self) -> str :
+    def __get_budget_id(self) -> str:
         """
         get the budget id string from the file in the secrets folder
         """
         fp = open(BUDGET_QTRLY_ID_FILE, "r")
         fid = fp.readline().strip()
-        self._lgr.info(F"GoogleUpdate.__get_budget_id(): Budget Id = {fid}\n")
+        self._lgr.debug(F"GoogleUpdate.__get_budget_id(): Budget Id = {fid}\n")
         fp.close()
 
         return fid
 
-    def __get_credentials(self) -> pickle :
+    def __get_credentials(self) -> pickle:
         """
         get the proper credentials needed to write to the Google spreadsheet
         """
-        self._lgr.info("GoogleUpdate.__get_credentials()")
+        self._lgr.debug("GoogleUpdate.__get_credentials()")
 
         creds = None
         if os_path.exists(GGL_SHEETS_TOKEN):
@@ -108,7 +113,7 @@ class GoogleUpdate:
         return creds
 
     # noinspection PyTypeChecker
-    def send_sheets_data(self) -> dict :
+    def send_sheets_data(self) -> dict:
         """
         Send the data list to my Google sheets document
         :return: server response
@@ -123,11 +128,11 @@ class GoogleUpdate:
             }
 
             creds = self.__get_credentials()
-            service = build('sheets', 'v4', credentials=creds)
+            service = build('sheets', 'v4', credentials=creds, cache_discovery=False)
             vals = service.spreadsheets().values()
             response = vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
 
-            self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated!\n")
+            self._lgr.debug(F"{response.get('totalUpdatedCells')} cells updated!\n")
 
         except Exception as sde:
             msg = repr(sde)
