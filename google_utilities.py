@@ -7,10 +7,9 @@
 #
 # Copyright (c) 2020 Mark Sattolo <epistemik@gmail.com>
 #
-__author__ = 'Mark Sattolo'
-__author_email__ = 'epistemik@gmail.com'
-__python_version__  = 3.9
-__gnucash_version__ = 3.8
+__author__         = 'Mark Sattolo'
+__author_email__   = 'epistemik@gmail.com'
+__google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
 __updated__ = '2020-01-27'
 
@@ -70,7 +69,7 @@ class GoogleUpdate:
         :param   row: to update
         :param   val: str OR Decimal: value to fill with
         """
-        self._lgr.debug("GoogleUpdate.fill_cell()")
+        self._lgr.log(5, get_current_time())
 
         value = val.to_eng_string() if isinstance(val, Decimal) else val
         cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
@@ -83,7 +82,7 @@ class GoogleUpdate:
         """
         fp = open(BUDGET_QTRLY_ID_FILE, "r")
         fid = fp.readline().strip()
-        self._lgr.debug(F"GoogleUpdate.__get_budget_id(): Budget Id = {fid}\n")
+        self._lgr.debug(get_current_time() + F" / __get_budget_id(): Budget Id = {fid}\n")
         fp.close()
 
         return fid
@@ -92,7 +91,7 @@ class GoogleUpdate:
         """
         get the proper credentials needed to write to the Google spreadsheet
         """
-        self._lgr.debug("GoogleUpdate.__get_credentials()")
+        self._lgr.debug(get_current_time())
 
         creds = None
         if os_path.exists(GGL_SHEETS_TOKEN):
@@ -134,8 +133,8 @@ class GoogleUpdate:
 
             self._lgr.debug(F"{response.get('totalUpdatedCells')} cells updated!\n")
 
-        except Exception as sde:
-            msg = repr(sde)
+        except Exception as ssde:
+            msg = repr(ssde)
             self._lgr.error(F"GoogleUpdate.send_sheets_data() Exception: {msg}!")
             response['Response'] = msg
 
