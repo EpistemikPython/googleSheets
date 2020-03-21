@@ -80,11 +80,9 @@ class GoogleUpdate:
         """
         get the budget id string from the file in the secrets folder
         """
-        fp = open(BUDGET_QTRLY_ID_FILE, "r")
-        fid = fp.readline().strip()
+        with open(BUDGET_QTRLY_ID_FILE, "r") as bfp:
+            fid = bfp.readline().strip()
         self._lgr.debug(get_current_time() + F" / __get_budget_id(): Budget Id = {fid}\n")
-        fp.close()
-
         return fid
 
     def __get_credentials(self) -> pickle:
