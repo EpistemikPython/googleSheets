@@ -21,7 +21,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
 path.append("/home/marksa/dev/git/Python/Utilities/")
-from python_utilities import *
+from investment import *
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
 # build('drive', 'v3', http=http, cache_discovery=False)
@@ -48,6 +48,22 @@ GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
 
 # Spreadsheet ID
 BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
+
+# column index in the Google sheets
+REV_EXP_COLS = {
+    DATE  : 'B',
+    REV   : 'D',
+    BAL   : 'P',
+    CONT  : 'O',
+    NEC   : 'G',
+    DEDNS : 'D'
+}
+
+# sheet names in Budget Quarterly
+ALL_INC_SHEET:str   = 'All Inc 1'
+ALL_INC_2_SHEET:str = 'All Inc 2'
+NEC_INC_SHEET:str   = 'Nec Inc 1'
+NEC_INC_2_SHEET:str = 'Nec Inc 2'
 
 FILL_CELL_VAL = Union[str, Decimal]
 
@@ -109,6 +125,7 @@ class GoogleUpdate:
 
         return creds
 
+    # TODO: send in a separate thread
     # noinspection PyTypeChecker
     def send_sheets_data(self) -> dict:
         """
