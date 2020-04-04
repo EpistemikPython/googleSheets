@@ -11,7 +11,7 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-01-27'
+__updated__ = '2020-04-04'
 
 from sys import path
 import os.path as os_path
@@ -49,6 +49,11 @@ GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
 # Spreadsheet ID
 BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
 
+BASE_YEAR = BASE + YR
+YEAR_SPAN = BASE_YEAR + SPAN
+QTR_SPAN  = QTR + SPAN
+HDR_SPAN  = 'Header' + SPAN
+
 # column index in the Google sheets
 REV_EXP_COLS = {
     DATE  : 'B',
@@ -68,7 +73,7 @@ NEC_INC_2_SHEET:str = 'Nec Inc 2'
 FILL_CELL_VAL = Union[str, Decimal]
 
 
-# TODO: add a history sheet and keep a detailed record of every update
+# TODO: threads with proper locking
 class GoogleUpdate:
     def __init__(self, p_logger:lg.Logger):
         self._lgr = p_logger
@@ -85,11 +90,11 @@ class GoogleUpdate:
         :param   row: to update
         :param   val: str OR Decimal: value to fill with
         """
-        self._lgr.log(5, get_current_time())
+        self._lgr.debug(get_current_time())
 
         value = val.to_eng_string() if isinstance(val, Decimal) else val
         cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
-        self._lgr.log(5, F"fill_cell() = {cell}\n")
+        self._lgr.debug(F"fill_cell() = {cell}\n")
         self._data.append(cell)
 
     def __get_budget_id(self) -> str:
