@@ -63,12 +63,28 @@ REV_EXP_COLS = {
     NEC   : 'G',
     DEDNS : 'D'
 }
+ASSET_COLS = {
+    DATE  : 'B',
+    AU    : 'U',
+    AG    : 'T',
+    CASH  : 'R',
+    BANK  : 'Q',
+    RWRDS : 'O',
+    RESP  : 'O',
+    OPEN  : 'L',
+    RRSP  : 'M',
+    TFSA  : 'N',
+    HOUSE : 'I',
+    TOTAL : 'H'
+}
 
 # sheet names in Budget Quarterly
 ALL_INC_SHEET:str   = 'All Inc 1'
 ALL_INC_2_SHEET:str = 'All Inc 2'
 NEC_INC_SHEET:str   = 'Nec Inc 1'
 NEC_INC_2_SHEET:str = 'Nec Inc 2'
+QTR_ASTS_SHEET:str   = 'Assets 1'
+QTR_ASTS_2_SHEET:str = 'Assets 2'
 
 FILL_CELL_VAL = Union[str, Decimal]
 
