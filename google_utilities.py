@@ -49,42 +49,15 @@ GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
 # Spreadsheet ID
 BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
 
-BASE_YEAR = BASE + YR
-YEAR_SPAN = BASE_YEAR + SPAN
-QTR_SPAN  = QTR + SPAN
-HDR_SPAN  = 'Header' + SPAN
-
-# column index in the Google sheets
-REV_EXP_COLS = {
-    DATE  : 'B',
-    REV   : 'D',
-    BAL   : 'P',
-    CONT  : 'O',
-    NEC   : 'G',
-    DEDNS : 'D'
-}
-ASSET_COLS = {
-    DATE  : 'B',
-    AU    : 'U',
-    AG    : 'T',
-    CASH  : 'R',
-    BANK  : 'Q',
-    RWRDS : 'O',
-    RESP  : 'O',
-    OPEN  : 'L',
-    RRSP  : 'M',
-    TFSA  : 'N',
-    HOUSE : 'I',
-    TOTAL : 'H'
-}
-
 # sheet names in Budget Quarterly
-ALL_INC_SHEET:str   = 'All Inc 1'
-ALL_INC_2_SHEET:str = 'All Inc 2'
-NEC_INC_SHEET:str   = 'Nec Inc 1'
-NEC_INC_2_SHEET:str = 'Nec Inc 2'
+ALL_INC_SHEET:str    = 'All Inc 1'
+ALL_INC_2_SHEET:str  = 'All Inc 2'
+NEC_INC_SHEET:str    = 'Nec Inc 1'
+NEC_INC_2_SHEET:str  = 'Nec Inc 2'
 QTR_ASTS_SHEET:str   = 'Assets 1'
 QTR_ASTS_2_SHEET:str = 'Assets 2'
+BAL_1_SHEET:str      = 'Balance 1'
+BAL_2_SHEET:str      = 'Balance 2'
 
 FILL_CELL_VAL = Union[str, Decimal]
 
