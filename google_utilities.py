@@ -149,4 +149,32 @@ class GoogleUpdate:
 
         return response
 
+    # TODO: send in a separate thread
+    # noinspection PyTypeChecker
+    def read_sheets_data(self, range_name:str) -> list:
+        """
+        Get data from my Google sheets document
+        :return: server response
+        """
+        self._lgr.info("GoogleUpdate.read_sheets_data()\n")
+
+        try:
+            # range_name = "'Record'!A1"
+
+            creds = self.__get_credentials()
+            service = build('sheets', 'v4', credentials = creds, cache_discovery = False)
+            vals = service.spreadsheets().values()
+
+            response = vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
+            rows = response.get('values', [])
+
+            self._lgr.info(F"{len(rows)} rows retrieved.\n")
+
+        except Exception as rsde:
+            msg = repr(rsde)
+            self._lgr.error(F"GoogleUpdate.read_sheets_data() Exception: {msg}!")
+            rows = [msg]
+
+        return rows
+
 # END class GoogleUpdate
