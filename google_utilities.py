@@ -11,8 +11,9 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-04-04'
+__updated__ = '2020-04-08'
 
+import threading
 from sys import path
 import os.path as os_path
 import pickle5 as pickle
@@ -31,7 +32,7 @@ lg.getLogger('googleapiclient.discovery_cache').setLevel(lg.ERROR)
 ML_WORK_SHEET:str  = 'ML Work'
 CALCULNS_SHEET:str = 'Calculations'
 
-# first data row in Budget-qtrly.gsht
+# first data row in the sheets
 BASE_ROW:int = 3
 
 CREDENTIALS_FILE:str = 'secrets/credentials.json'
@@ -62,11 +63,11 @@ BAL_2_SHEET:str      = 'Balance 2'
 FILL_CELL_VAL = Union[str, Decimal]
 
 
-# TODO: threads with proper locking
 class GoogleUpdate:
     def __init__(self, p_logger:lg.Logger):
         self._lgr = p_logger
         self._data = list()
+        self._lock = None
 
     def get_data(self) -> list:
         return self._data
@@ -119,7 +120,6 @@ class GoogleUpdate:
 
         return creds
 
-    # TODO: send in a separate thread
     # noinspection PyTypeChecker
     def send_sheets_data(self) -> dict:
         """
@@ -127,6 +127,7 @@ class GoogleUpdate:
         :return: server response
         """
         self._lgr.info("GoogleUpdate.send_sheets_data()\n")
+        self._lock = threading.Lock()
 
         response = {'Response': 'None'}
         try:
@@ -134,11 +135,11 @@ class GoogleUpdate:
                 'valueInputOption': 'USER_ENTERED',
                 'data': self._data
             }
-
-            creds = self.__get_credentials()
-            service = build('sheets', 'v4', credentials=creds, cache_discovery=False)
-            vals = service.spreadsheets().values()
-            response = vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
+            with self._lock:
+                creds = self.__get_credentials()
+                service = build('sheets', 'v4', credentials=creds, cache_discovery=False)
+                vals = service.spreadsheets().values()
+                response = vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
 
             self._lgr.debug(F"{response.get('totalUpdatedCells')} cells updated!\n")
 
@@ -146,10 +147,11 @@ class GoogleUpdate:
             msg = repr(ssde)
             self._lgr.error(F"GoogleUpdate.send_sheets_data() Exception: {msg}!")
             response['Response'] = msg
+        finally:
+            self._lock = None
 
         return response
 
-    # TODO: send in a separate thread
     # noinspection PyTypeChecker
     def read_sheets_data(self, range_name:str) -> list:
         """
