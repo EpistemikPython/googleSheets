@@ -11,7 +11,7 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-04-08'
+__updated__ = '2020-04-09'
 
 import threading
 from sys import path
@@ -96,6 +96,7 @@ class GoogleUpdate:
         self._lgr.debug(get_current_time() + F" / __get_budget_id(): Budget Id = {fid}\n")
         return fid
 
+    # noinspection PyUnresolvedReferences
     def __get_credentials(self) -> pickle:
         """
         get the proper credentials needed to write to the Google spreadsheet
