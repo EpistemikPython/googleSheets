@@ -6,12 +6,12 @@
 # some code from Google quickstart examples
 #
 # Copyright (c) 2020 Mark Sattolo <epistemik@gmail.com>
-#
+
 __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-04-09'
+__updated__ = '2020-04-12'
 
 import threading
 from sys import path
@@ -64,28 +64,36 @@ FILL_CELL_VAL = Union[str, Decimal]
 
 
 class GoogleUpdate:
+    # prevent different instances/threads from writing at the same time
+    _lock = threading.Lock()
+
     def __init__(self, p_logger:lg.Logger):
         self._lgr = p_logger
         self._data = list()
-        self._lock = None
+        self._lgr.info(F"\n\tLaunch {self.__class__.__name__} instance with lock {str(self._lock)}\n\t"
+                       F" at Runtime = {get_current_time()}\n")
 
     def get_data(self) -> list:
         return self._data
 
-    def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
-        """
-        create the information to update a Google Sheets cell and add to the data list
-        :param sheet: particular sheet in my Google spreadsheet to update
-        :param   col: column to update
-        :param   row: to update
-        :param   val: str OR Decimal: value to fill with
-        """
-        self._lgr.debug(get_current_time())
+    # noinspection PyAttributeOutsideInit
+    def begin_session(self):
+        self._lgr.info(get_current_time())
 
-        value = val.to_eng_string() if isinstance(val, Decimal) else val
-        cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
-        self._lgr.debug(F"fill_cell() = {cell}\n")
-        self._data.append(cell)
+        # CANNOT have a separate Session on the Google file
+        self._lock.acquire()
+        self._lgr.debug(F"acquired lock.")
+
+        creds = self.__get_credentials()
+        service = build('sheets', 'v4', credentials = creds, cache_discovery = False)
+        self.vals = service.spreadsheets().values()
+
+    def end_session(self):
+        self._lgr.info(get_current_time())
+
+        # RELEASE the Session on the Google file
+        self._lock.release()
+        self._lgr.debug(F"released lock.")
 
     def __get_budget_id(self) -> str:
         """
@@ -121,6 +129,21 @@ class GoogleUpdate:
 
         return creds
 
+    def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
+        """
+        create the information to update a Google Sheets cell and add to the data list
+        :param sheet: particular sheet in my Google spreadsheet to update
+        :param   col: column to update
+        :param   row: to update
+        :param   val: str OR Decimal: value to fill with
+        """
+        self._lgr.debug(get_current_time())
+
+        value = val.to_eng_string() if isinstance(val, Decimal) else val
+        cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
+        self._lgr.debug(F"fill_cell() = {cell}\n")
+        self._data.append(cell)
+
     # noinspection PyTypeChecker
     def send_sheets_data(self) -> dict:
         """
@@ -128,7 +151,6 @@ class GoogleUpdate:
         :return: server response
         """
         self._lgr.info("GoogleUpdate.send_sheets_data()\n")
-        self._lock = threading.Lock()
 
         response = {'Response': 'None'}
         try:
@@ -136,20 +158,14 @@ class GoogleUpdate:
                 'valueInputOption': 'USER_ENTERED',
                 'data': self._data
             }
-            with self._lock:
-                creds = self.__get_credentials()
-                service = build('sheets', 'v4', credentials=creds, cache_discovery=False)
-                vals = service.spreadsheets().values()
-                response = vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
+            response = self.vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
 
-            self._lgr.debug(F"{response.get('totalUpdatedCells')} cells updated!\n")
+            self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated!\n")
 
         except Exception as ssde:
             msg = repr(ssde)
             self._lgr.error(F"GoogleUpdate.send_sheets_data() Exception: {msg}!")
             response['Response'] = msg
-        finally:
-            self._lock = None
 
         return response
 
@@ -162,13 +178,7 @@ class GoogleUpdate:
         self._lgr.info("GoogleUpdate.read_sheets_data()\n")
 
         try:
-            # range_name = "'Record'!A1"
-
-            creds = self.__get_credentials()
-            service = build('sheets', 'v4', credentials = creds, cache_discovery = False)
-            vals = service.spreadsheets().values()
-
-            response = vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
+            response = self.vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
             rows = response.get('values', [])
 
             self._lgr.info(F"{len(rows)} rows retrieved.\n")
