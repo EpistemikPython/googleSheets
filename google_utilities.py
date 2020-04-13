@@ -11,7 +11,7 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-04-12'
+__updated__ = '2020-04-13'
 
 import threading
 from sys import path
@@ -63,6 +63,29 @@ BAL_2_SHEET:str      = 'Balance 2'
 FILL_CELL_VAL = Union[str, Decimal]
 
 
+# noinspection PyUnresolvedReferences
+def get_credentials(logger:lg.Logger=None) -> pickle:
+    """get the proper credentials needed to write to the Google spreadsheet"""
+    if logger: logger.info(get_current_time())
+    creds = None
+    if os_path.exists(GGL_SHEETS_TOKEN):
+        with open(GGL_SHEETS_TOKEN, 'rb') as token:
+            creds = pickle.load(token)
+
+    # if there are no (valid) credentials available, let the user log in.
+    if creds is None or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SHEETS_RW_SCOPE)
+            creds = flow.run_local_server()
+        # save the credentials for the next run
+        with open(GGL_SHEETS_TOKEN, 'wb') as token:
+            pickle.dump(creds, token, pickle.DEFAULT_PROTOCOL)
+
+    return creds
+
+
 class GoogleUpdate:
     # prevent different instances/threads from writing at the same time
     _lock = threading.Lock()
@@ -78,22 +101,18 @@ class GoogleUpdate:
 
     # noinspection PyAttributeOutsideInit
     def begin_session(self):
-        self._lgr.info(get_current_time())
-
         # CANNOT have a separate Session on the Google file
         self._lock.acquire()
-        self._lgr.debug(F"acquired lock.")
+        self._lgr.info(F"acquired lock at {get_current_time()}")
 
-        creds = self.__get_credentials()
+        creds = get_credentials()
         service = build('sheets', 'v4', credentials = creds, cache_discovery = False)
         self.vals = service.spreadsheets().values()
 
     def end_session(self):
-        self._lgr.info(get_current_time())
-
         # RELEASE the Session on the Google file
         self._lock.release()
-        self._lgr.debug(F"released lock.")
+        self._lgr.debug(F"released lock at {get_current_time()}")
 
     def __get_budget_id(self) -> str:
         """
@@ -103,31 +122,6 @@ class GoogleUpdate:
             fid = bfp.readline().strip()
         self._lgr.debug(get_current_time() + F" / __get_budget_id(): Budget Id = {fid}\n")
         return fid
-
-    # noinspection PyUnresolvedReferences
-    def __get_credentials(self) -> pickle:
-        """
-        get the proper credentials needed to write to the Google spreadsheet
-        """
-        self._lgr.debug(get_current_time())
-
-        creds = None
-        if os_path.exists(GGL_SHEETS_TOKEN):
-            with open(GGL_SHEETS_TOKEN, 'rb') as token:
-                creds = pickle.load(token)
-
-        # if there are no (valid) credentials available, let the user log in.
-        if creds is None or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SHEETS_RW_SCOPE)
-                creds = flow.run_local_server()
-            # save the credentials for the next run
-            with open(GGL_SHEETS_TOKEN, 'wb') as token:
-                pickle.dump(creds, token, pickle.DEFAULT_PROTOCOL)
-
-        return creds
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
         """
