@@ -11,11 +11,10 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-04-13'
+__updated__ = '2020-04-15'
 
 import threading
 from sys import path
-import os.path as os_path
 import pickle5 as pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -35,20 +34,22 @@ CALCULNS_SHEET:str = 'Calculations'
 # first data row in the sheets
 BASE_ROW:int = 3
 
-CREDENTIALS_FILE:str = 'secrets/credentials.json'
+SECRETS_DIR = 'secrets'
+CREDENTIALS_FILE:str = SECRETS_DIR + osp.sep + 'credentials' + osp.extsep + 'json'
 
-SHEETS_RW_SCOPE:list = ['https://www.googleapis.com/auth/spreadsheets']
-
+SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
+BASE_SHEETS_PICKLE:str   = 'token.sheets.epistemik.rw.pickle'
+BASE_PICKLE_LOCATION:str = SECRETS_DIR + osp.sep + BASE_SHEETS_PICKLE
 SHEETS_EPISTEMIK_RW_TOKEN:dict = {
-    'P2' : 'secrets/token.sheets.epistemik.rw.pickle2' ,
-    'P3' : 'secrets/token.sheets.epistemik.rw.pickle3' ,
-    'P4' : 'secrets/token.sheets.epistemik.rw.pickle4' ,
-    'P5' : 'secrets/token.sheets.epistemik.rw.pickle5'
+    'P2' : BASE_PICKLE_LOCATION + '2' ,
+    'P3' : BASE_PICKLE_LOCATION + '3' ,
+    'P4' : BASE_PICKLE_LOCATION + '4' ,
+    'P5' : BASE_PICKLE_LOCATION + '5'
 }
 GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
 
 # Spreadsheet ID
-BUDGET_QTRLY_ID_FILE:str = 'secrets/Budget-qtrly.id'
+BUDGET_QTRLY_ID_FILE:str = SECRETS_DIR + osp.sep + 'Budget-qtrly' + osp.extsep + 'id'
 
 # sheet names in Budget Quarterly
 ALL_INC_SHEET:str    = 'All Inc 1'
@@ -68,7 +69,7 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
     """get the proper credentials needed to write to the Google spreadsheet"""
     if logger: logger.info(get_current_time())
     creds = None
-    if os_path.exists(GGL_SHEETS_TOKEN):
+    if osp.exists(GGL_SHEETS_TOKEN):
         with open(GGL_SHEETS_TOKEN, 'rb') as token:
             creds = pickle.load(token)
 
@@ -87,6 +88,7 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
 
 
 class GoogleUpdate:
+    """start a Google session, read/write to my Budget sheet, end the session"""
     # prevent different instances/threads from writing at the same time
     _lock = threading.Lock()
 
