@@ -3,7 +3,7 @@
 #
 # google_utilities.py -- useful constants, functions & classes for Google
 #
-# some code from Google quickstart examples
+# includes some code from Google quickstart examples
 #
 # Copyright (c) 2020 Mark Sattolo <epistemik@gmail.com>
 
@@ -11,7 +11,7 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-04-15'
+__updated__ = '2020-06-07'
 
 import threading
 from sys import path
@@ -35,11 +35,11 @@ CALCULNS_SHEET:str = 'Calculations'
 BASE_ROW:int = 3
 
 SECRETS_DIR = 'secrets'
-CREDENTIALS_FILE:str = SECRETS_DIR + osp.sep + 'credentials' + osp.extsep + 'json'
+CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, 'credentials' + osp.extsep + 'json')
 
 SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
 BASE_SHEETS_PICKLE:str   = 'token.sheets.epistemik.rw.pickle'
-BASE_PICKLE_LOCATION:str = SECRETS_DIR + osp.sep + BASE_SHEETS_PICKLE
+BASE_PICKLE_LOCATION:str = osp.join(SECRETS_DIR, BASE_SHEETS_PICKLE)
 SHEETS_EPISTEMIK_RW_TOKEN:dict = {
     'P2' : BASE_PICKLE_LOCATION + '2' ,
     'P3' : BASE_PICKLE_LOCATION + '3' ,
@@ -49,7 +49,7 @@ SHEETS_EPISTEMIK_RW_TOKEN:dict = {
 GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
 
 # Spreadsheet ID
-BUDGET_QTRLY_ID_FILE:str = SECRETS_DIR + osp.sep + 'Budget-qtrly' + osp.extsep + 'id'
+BUDGET_QTRLY_ID_FILE:str = osp.join(SECRETS_DIR, 'Budget-qtrly' + osp.extsep + 'id')
 
 # sheet names in Budget Quarterly
 ALL_INC_SHEET:str    = 'All Inc 1'
@@ -88,7 +88,9 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
 
 
 class GoogleUpdate:
-    """start a Google session, read/write to my Budget sheet, end the session"""
+    """
+    start a Google session, read/write to my Budget sheet, end the session
+    """
     # prevent different instances/threads from writing at the same time
     _lock = threading.Lock()
 
@@ -103,7 +105,7 @@ class GoogleUpdate:
 
     # noinspection PyAttributeOutsideInit
     def begin_session(self):
-        # CANNOT have a separate Session on the Google file
+        # PREVENT starting a separate Session on the Google file
         self._lock.acquire()
         self._lgr.info(F"acquired lock at {get_current_time()}")
 
@@ -143,7 +145,7 @@ class GoogleUpdate:
     # noinspection PyTypeChecker
     def send_sheets_data(self) -> dict:
         """
-        Send the data list to my Google sheets document
+        SEND the data list to my Google sheets document
         :return: server response
         """
         self._lgr.info("GoogleUpdate.send_sheets_data()\n")
@@ -168,7 +170,7 @@ class GoogleUpdate:
     # noinspection PyTypeChecker
     def read_sheets_data(self, range_name:str) -> list:
         """
-        Get data from my Google sheets document
+        READ data from my Google sheets document
         :return: server response
         """
         self._lgr.info("GoogleUpdate.read_sheets_data()\n")
