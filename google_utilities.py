@@ -11,7 +11,7 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-06-07'
+__updated__ = '2020-06-16'
 
 import threading
 from sys import path
@@ -20,11 +20,11 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
-path.append("/home/marksa/dev/git/Python/Utilities/")
+path.append("/newdata/dev/git/Python/Gnucash/createGncTxs")
 from investment import *
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
-# build('drive', 'v3', http=http, cache_discovery=False)
+# use: e.g. build('drive', 'v3', http=http, cache_discovery=False)
 lg.getLogger('googleapiclient.discovery_cache').setLevel(lg.ERROR)
 
 # sheet names in Budget Quarterly
@@ -149,6 +149,8 @@ class GoogleUpdate:
         :return: server response
         """
         self._lgr.info("GoogleUpdate.send_sheets_data()\n")
+        if not self.vals:
+            self._lgr.exception("No Session started!")
 
         response = {'Response': 'None'}
         try:
@@ -174,6 +176,8 @@ class GoogleUpdate:
         :return: server response
         """
         self._lgr.info("GoogleUpdate.read_sheets_data()\n")
+        if not self.vals:
+            self._lgr.exception("No Session started!")
 
         try:
             response = self.vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
@@ -187,5 +191,11 @@ class GoogleUpdate:
             rows = [msg]
 
         return rows
+
+    def test_read(self, range_name:str) -> list:
+        self.begin_session()
+        result = self.read_sheets_data(range_name)
+        self.end_session()
+        return result
 
 # END class GoogleUpdate
