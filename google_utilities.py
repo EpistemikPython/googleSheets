@@ -11,7 +11,7 @@ __author__         = 'Mark Sattolo'
 __author_email__   = 'epistemik@gmail.com'
 __google_api_python_client_version__ = '1.7.11'
 __created__ = '2019-04-07'
-__updated__ = '2020-06-16'
+__updated__ = '2020-07-01'
 
 import threading
 from sys import path
@@ -27,12 +27,10 @@ from investment import *
 # use: e.g. build('drive', 'v3', http=http, cache_discovery=False)
 lg.getLogger('googleapiclient.discovery_cache').setLevel(lg.ERROR)
 
+BASE_ROW:str = "Base Row"
 # sheet names in Budget Quarterly
 ML_WORK_SHEET:str  = 'ML Work'
 CALCULNS_SHEET:str = 'Calculations'
-
-# first data row in the sheets
-BASE_ROW:int = 3
 
 SECRETS_DIR = 'secrets'
 CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, 'credentials' + osp.extsep + 'json')
