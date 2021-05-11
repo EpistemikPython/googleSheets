@@ -5,13 +5,13 @@
 #
 # includes some code from Google quickstart examples
 #
-# Copyright (c) 2020 Mark Sattolo <epistemik@gmail.com>
+# Copyright (c) 2019-21 Mark Sattolo <epistemik@gmail.com>
 
-__author__         = 'Mark Sattolo'
-__author_email__   = 'epistemik@gmail.com'
-__google_api_python_client_version__ = '1.7.11'
-__created__ = '2019-04-07'
-__updated__ = '2020-07-01'
+__author__         = "Mark Sattolo"
+__author_email__   = "epistemik@gmail.com"
+__google_api_python_client_version__ = "1.7.11"
+__created__ = "2019-04-07"
+__updated__ = "2021-02-16"
 
 import threading
 from sys import path
@@ -24,40 +24,40 @@ path.append("/newdata/dev/git/Python/Gnucash/createGncTxs")
 from investment import *
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
-# use: e.g. build('drive', 'v3', http=http, cache_discovery=False)
-lg.getLogger('googleapiclient.discovery_cache').setLevel(lg.ERROR)
+# use: e.g. build("drive", "v3", http=http, cache_discovery=False)
+lg.getLogger("googleapiclient.discovery_cache").setLevel(lg.ERROR)
 
 BASE_ROW:str = "Base Row"
 # sheet names in Budget Quarterly
-ML_WORK_SHEET:str  = 'ML Work'
-CALCULNS_SHEET:str = 'Calculations'
+ML_WORK_SHEET:str  = "ML Work"
+CALCULNS_SHEET:str = "Calculations"
 
-SECRETS_DIR = 'secrets'
-CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, 'credentials' + osp.extsep + 'json')
+SECRETS_DIR = "secrets"
+CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, "credentials" + osp.extsep + "json")
 
 SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
-BASE_SHEETS_PICKLE:str   = 'token.sheets.epistemik.rw.pickle'
+BASE_SHEETS_PICKLE:str   = "token.sheets.epistemik.rw.pickle"
 BASE_PICKLE_LOCATION:str = osp.join(SECRETS_DIR, BASE_SHEETS_PICKLE)
 SHEETS_EPISTEMIK_RW_TOKEN:dict = {
-    'P2' : BASE_PICKLE_LOCATION + '2' ,
-    'P3' : BASE_PICKLE_LOCATION + '3' ,
-    'P4' : BASE_PICKLE_LOCATION + '4' ,
-    'P5' : BASE_PICKLE_LOCATION + '5'
+    "P2" : BASE_PICKLE_LOCATION + '2' ,
+    "P3" : BASE_PICKLE_LOCATION + '3' ,
+    "P4" : BASE_PICKLE_LOCATION + '4' ,
+    "P5" : BASE_PICKLE_LOCATION + '5'
 }
-GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN['P5']
+GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN["P5"]
 
 # Spreadsheet ID
-BUDGET_QTRLY_ID_FILE:str = osp.join(SECRETS_DIR, 'Budget-qtrly' + osp.extsep + 'id')
+BUDGET_QTRLY_ID_FILE:str = osp.join(SECRETS_DIR, "Budget-qtrly" + osp.extsep + "id")
 
 # sheet names in Budget Quarterly
-ALL_INC_SHEET:str    = 'All Inc 1'
-ALL_INC_2_SHEET:str  = 'All Inc 2'
-NEC_INC_SHEET:str    = 'Nec Inc 1'
-NEC_INC_2_SHEET:str  = 'Nec Inc 2'
-QTR_ASTS_SHEET:str   = 'Assets 1'
-QTR_ASTS_2_SHEET:str = 'Assets 2'
-BAL_1_SHEET:str      = 'Balance 1'
-BAL_2_SHEET:str      = 'Balance 2'
+ALL_INC_SHEET:str    = "All Inc 1"
+ALL_INC_2_SHEET:str  = "All Inc 2"
+NEC_INC_SHEET:str    = "Nec Inc 1"
+NEC_INC_2_SHEET:str  = "Nec Inc 2"
+QTR_ASTS_SHEET:str   = "Assets 1"
+QTR_ASTS_2_SHEET:str = "Assets 2"
+BAL_1_SHEET:str      = "Balance 1"
+BAL_2_SHEET:str      = "Balance 2"
 
 FILL_CELL_VAL = Union[str, Decimal]
 
@@ -68,7 +68,7 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
     if logger: logger.info(get_current_time())
     creds = None
     if osp.exists(GGL_SHEETS_TOKEN):
-        with open(GGL_SHEETS_TOKEN, 'rb') as token:
+        with open(GGL_SHEETS_TOKEN, "rb") as token:
             creds = pickle.load(token)
 
     # if there are no (valid) credentials available, let the user log in.
@@ -79,7 +79,7 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
             flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SHEETS_RW_SCOPE)
             creds = flow.run_local_server()
         # save the credentials for the next run
-        with open(GGL_SHEETS_TOKEN, 'wb') as token:
+        with open(GGL_SHEETS_TOKEN, "wb") as token:
             pickle.dump(creds, token, pickle.DEFAULT_PROTOCOL)
 
     return creds
@@ -106,9 +106,8 @@ class GoogleUpdate:
         # PREVENT starting a separate Session on the Google file
         self._lock.acquire()
         self._lgr.info(F"acquired lock at {get_current_time()}")
-
         creds = get_credentials()
-        service = build('sheets', 'v4', credentials = creds, cache_discovery = False)
+        service = build("sheets", "v4", credentials = creds, cache_discovery = False)
         self.vals = service.spreadsheets().values()
 
     def end_session(self):
@@ -133,10 +132,9 @@ class GoogleUpdate:
         :param   row: to update
         :param   val: str OR Decimal: value to fill with
         """
-        self._lgr.debug(get_current_time())
-
+        self._lgr.debug( get_current_time() )
         value = val.to_eng_string() if isinstance(val, Decimal) else val
-        cell = {'range': sheet + '!' + col + str(row), 'values': [[value]]}
+        cell = {"range": sheet + '!' + col + str(row), "values": [[value]]}
         self._lgr.debug(F"fill_cell() = {cell}\n")
         self._data.append(cell)
 
@@ -150,21 +148,19 @@ class GoogleUpdate:
         if not self.vals:
             self._lgr.exception("No Session started!")
 
-        response = {'Response': 'None'}
+        response = {"Response": "None"}
         try:
             assets_body = {
-                'valueInputOption': 'USER_ENTERED',
-                'data': self._data
+                "valueInputOption": "USER_ENTERED",
+                "data": self._data
             }
             response = self.vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
 
             self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated!\n")
-
         except Exception as ssde:
             msg = repr(ssde)
             self._lgr.error(F"GoogleUpdate.send_sheets_data() Exception: {msg}!")
-            response['Response'] = msg
-
+            response["Response"] = msg
         return response
 
     # noinspection PyTypeChecker
@@ -176,18 +172,14 @@ class GoogleUpdate:
         self._lgr.info("GoogleUpdate.read_sheets_data()\n")
         if not self.vals:
             self._lgr.exception("No Session started!")
-
         try:
             response = self.vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
-            rows = response.get('values', [])
-
+            rows = response.get("values", [])
             self._lgr.info(F"{len(rows)} rows retrieved.\n")
-
         except Exception as rsde:
             msg = repr(rsde)
             self._lgr.error(F"GoogleUpdate.read_sheets_data() Exception: {msg}!")
             rows = [msg]
-
         return rows
 
     def test_read(self, range_name:str) -> list:
