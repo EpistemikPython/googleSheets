@@ -9,18 +9,19 @@
 
 __author__         = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
-__google_api_python_client_version__ = "1.7.11"
+__google_api_python_client_py3_version__ = "1.2"
 __created__ = "2019-04-07"
-__updated__ = "2021-02-16"
+__updated__ = "2021-05-11"
 
 import threading
+from decimal import Decimal
 from sys import path
 import pickle5 as pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
-path.append("/newdata/dev/git/Python/Gnucash/createGncTxs")
+path.append("/newdata/dev/git/Python/Gnucash/common")
 from investment import *
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
