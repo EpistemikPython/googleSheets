@@ -1,7 +1,7 @@
 ##############################################################################################################################
 # coding=utf-8
 #
-# google_utilities.py -- useful constants, functions & classes for Google
+# googleUtils.py -- useful constants, functions & classes for access to Google entities
 #
 # includes some code from Google quickstart examples
 #
@@ -33,7 +33,7 @@ BASE_ROW:str = "Base Row"
 ML_WORK_SHEET:str  = "ML Work"
 CALCULNS_SHEET:str = "Calculations"
 
-SECRETS_DIR = "secrets"
+SECRETS_DIR = "/newdata/dev/git/Python/Google/secrets"
 CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, "credentials" + osp.extsep + "json")
 
 SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
@@ -65,31 +65,33 @@ FILL_CELL_VAL = Union[str, Decimal]
 
 # noinspection PyUnresolvedReferences
 def get_credentials(logger:lg.Logger=None) -> pickle:
-    """get the proper credentials needed to write to the Google spreadsheet"""
-    if logger: logger.info(get_current_time())
+    """Get the proper credentials needed to write to the Google spreadsheet."""
     creds = None
     if osp.exists(GGL_SHEETS_TOKEN):
+        if logger: logger.info(F"osp.exists({GGL_SHEETS_TOKEN})")
         with open(GGL_SHEETS_TOKEN, "rb") as token:
             creds = pickle.load(token)
 
     # if there are no (valid) credentials available, let the user log in.
     if creds is None or not creds.valid:
+        if logger: logger.info("creds is None or not creds.valid")
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            if logger: logger.debug("creds.refresh(Request())")
         else:
             flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SHEETS_RW_SCOPE)
             creds = flow.run_local_server()
+            if logger: logger.debug("creds = flow.run_local_server()")
         # save the credentials for the next run
         with open(GGL_SHEETS_TOKEN, "wb") as token:
-            pickle.dump(creds, token, pickle.DEFAULT_PROTOCOL)
+            if logger: logger.debug("pickle.dump()")
+            pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
 
     return creds
 
 
 class GoogleUpdate:
-    """
-    start a Google session, read/write to my Budget sheet, end the session
-    """
+    """Start a Google session, read/write to my Budget sheet, end the session."""
     # prevent different instances/threads from writing at the same time
     _lock = threading.Lock()
 
@@ -107,7 +109,7 @@ class GoogleUpdate:
         # PREVENT starting a separate Session on the Google file
         self._lock.acquire()
         self._lgr.info(F"acquired lock at {get_current_time()}")
-        creds = get_credentials()
+        creds = get_credentials(self._lgr)
         service = build("sheets", "v4", credentials = creds, cache_discovery = False)
         self.vals = service.spreadsheets().values()
 
@@ -117,9 +119,7 @@ class GoogleUpdate:
         self._lgr.debug(F"released lock at {get_current_time()}")
 
     def __get_budget_id(self) -> str:
-        """
-        get the budget id string from the file in the secrets folder
-        """
+        """Get the budget id string from the file in the secrets folder."""
         with open(BUDGET_QTRLY_ID_FILE, "r") as bfp:
             fid = bfp.readline().strip()
         self._lgr.debug(get_current_time() + F" / __get_budget_id(): Budget Id = {fid}\n")
@@ -127,7 +127,7 @@ class GoogleUpdate:
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
         """
-        create the information to update a Google Sheets cell and add to the data list
+        CREATE the information to update a Google Sheets cell and add to the data list
         :param sheet: particular sheet in my Google spreadsheet to update
         :param   col: column to update
         :param   row: to update
@@ -145,7 +145,7 @@ class GoogleUpdate:
         SEND the data list to my Google sheets document
         :return: server response
         """
-        self._lgr.info("GoogleUpdate.send_sheets_data()\n")
+        self._lgr.debug( get_current_time() )
         if not self.vals:
             self._lgr.exception("No Session started!")
 
@@ -160,7 +160,7 @@ class GoogleUpdate:
             self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated!\n")
         except Exception as ssde:
             msg = repr(ssde)
-            self._lgr.error(F"GoogleUpdate.send_sheets_data() Exception: {msg}!")
+            self._lgr.error(msg)
             response["Response"] = msg
         return response
 
@@ -170,7 +170,7 @@ class GoogleUpdate:
         READ data from my Google sheets document
         :return: server response
         """
-        self._lgr.info("GoogleUpdate.read_sheets_data()\n")
+        self._lgr.debug( get_current_time() )
         if not self.vals:
             self._lgr.exception("No Session started!")
         try:
@@ -179,7 +179,7 @@ class GoogleUpdate:
             self._lgr.info(F"{len(rows)} rows retrieved.\n")
         except Exception as rsde:
             msg = repr(rsde)
-            self._lgr.error(F"GoogleUpdate.read_sheets_data() Exception: {msg}!")
+            self._lgr.error(msg)
             rows = [msg]
         return rows
 
