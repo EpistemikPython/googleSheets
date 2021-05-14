@@ -1,7 +1,7 @@
 ##############################################################################################################################
 # coding=utf-8
 #
-# googleUtils.py -- useful constants, functions & classes for access to Google entities
+# sheetAccess.py -- useful constants, functions & classes for access to my Google Sheets
 #
 # includes some code from Google quickstart examples
 #
@@ -11,7 +11,7 @@ __author__         = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
 __google_api_python_client_py3_version__ = "1.2"
 __created__ = "2019-04-07"
-__updated__ = "2021-05-11"
+__updated__ = "2021-05-14"
 
 import threading
 from decimal import Decimal
@@ -33,7 +33,7 @@ BASE_ROW:str = "Base Row"
 ML_WORK_SHEET:str  = "ML Work"
 CALCULNS_SHEET:str = "Calculations"
 
-SECRETS_DIR = "/newdata/dev/git/Python/Google/secrets"
+SECRETS_DIR = "/newdata/dev/git/Python/Google/Sheets/secrets"
 CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, "credentials" + osp.extsep + "json")
 
 SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
@@ -90,7 +90,7 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
     return creds
 
 
-class GoogleUpdate:
+class MhsSheetAccess:
     """Start a Google session, read/write to my Budget sheet, end the session."""
     # prevent different instances/threads from writing at the same time
     _lock = threading.Lock()
@@ -189,4 +189,4 @@ class GoogleUpdate:
         self.end_session()
         return result
 
-# END class GoogleUpdate
+# END class MhsSheetAccess
