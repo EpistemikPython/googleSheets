@@ -122,7 +122,7 @@ class GoogleUpdate:
         """Get the budget id string from the file in the secrets folder."""
         with open(BUDGET_QTRLY_ID_FILE, "r") as bfp:
             fid = bfp.readline().strip()
-        self._lgr.debug(get_current_time() + F" / __get_budget_id(): Budget Id = {fid}\n")
+        self._lgr.debug(F"{get_current_time()} / Budget Id = {fid}\n")
         return fid
 
     def fill_cell(self, sheet:str, col:str, row:int, val:FILL_CELL_VAL):
