@@ -1,2 +1,2 @@
 # google
-api access to google drive, documents, spreadsheets
+api access to google spreadsheets
