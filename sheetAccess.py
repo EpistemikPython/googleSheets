@@ -11,7 +11,7 @@ __author__         = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
 __google_api_python_client_py3_version__ = "1.2"
 __created__ = "2019-04-07"
-__updated__ = "2021-05-14"
+__updated__ = "2021-05-15"
 
 import threading
 from decimal import Decimal
@@ -21,8 +21,9 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
-path.append("/newdata/dev/git/Python/Gnucash/common")
-from investment import *
+path.append("/newdata/dev/git/Python/utils")
+from mhsUtils import get_current_time, osp, lg
+from mhsLogging import get_simple_logger
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
 # use: e.g. build("drive", "v3", http=http, cache_discovery=False)
@@ -95,18 +96,17 @@ class MhsSheetAccess:
     # prevent different instances/threads from writing at the same time
     _lock = threading.Lock()
 
-    def __init__(self, p_logger:lg.Logger):
-        self._lgr = p_logger
+    def __init__(self, p_logger:lg.Logger=None):
+        self._lgr = p_logger if p_logger else get_simple_logger(self.__class__.__name__)
         self._data = list()
-        self._lgr.info(F"\n\tLaunch {self.__class__.__name__} instance with lock {str(self._lock)}\n\t"
-                       F" at Runtime = {get_current_time()}\n")
+        self._lgr.info(F"Launch {self.__class__.__name__} instance with lock '{str(self._lock)}' at {get_current_time()}\n")
 
     def get_data(self) -> list:
         return self._data
 
     # noinspection PyAttributeOutsideInit
     def begin_session(self):
-        # PREVENT starting a separate Session on the Google file
+        # PREVENT starting a separate Session on the Google sheet
         self._lock.acquire()
         self._lgr.info(F"acquired lock at {get_current_time()}")
         creds = get_credentials(self._lgr)
@@ -114,7 +114,7 @@ class MhsSheetAccess:
         self.vals = service.spreadsheets().values()
 
     def end_session(self):
-        # RELEASE the Session on the Google file
+        # RELEASE the Session on the Google sheet
         self._lock.release()
         self._lgr.debug(F"released lock at {get_current_time()}")
 
@@ -148,6 +148,7 @@ class MhsSheetAccess:
         self._lgr.debug( get_current_time() )
         if not self.vals:
             self._lgr.exception("No Session started!")
+            return
 
         response = {"Response": "None"}
         try:
@@ -173,6 +174,8 @@ class MhsSheetAccess:
         self._lgr.debug( get_current_time() )
         if not self.vals:
             self._lgr.exception("No Session started!")
+            return
+
         try:
             response = self.vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
             rows = response.get("values", [])
@@ -190,3 +193,15 @@ class MhsSheetAccess:
         return result
 
 # END class MhsSheetAccess
+
+
+def mhs_class_test():
+    mhs = MhsSheetAccess()
+    test_range = "'Record'!A1"
+    response = mhs.test_read(test_range)
+    print( repr(response) )
+
+
+if __name__ == "__main__":
+    mhs_class_test()
+    exit()
