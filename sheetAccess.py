@@ -11,7 +11,7 @@ __author__         = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
 __google_api_python_client_py3_version__ = "1.2"
 __created__ = "2019-04-07"
-__updated__ = "2021-05-15"
+__updated__ = "2021-05-19"
 
 import threading
 from decimal import Decimal
@@ -64,7 +64,6 @@ BAL_2_SHEET:str      = "Balance 2"
 FILL_CELL_VAL = Union[str, Decimal]
 
 
-# noinspection PyUnresolvedReferences
 def get_credentials(logger:lg.Logger=None) -> pickle:
     """Get the proper credentials needed to write to the Google spreadsheet."""
     creds = None
@@ -74,7 +73,7 @@ def get_credentials(logger:lg.Logger=None) -> pickle:
             creds = pickle.load(token)
 
     # if there are no (valid) credentials available, let the user log in.
-    if creds is None or not creds.valid:
+    if not creds or not creds.valid:
         if logger: logger.info("creds is None or not creds.valid")
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -139,7 +138,6 @@ class MhsSheetAccess:
         self._lgr.debug(F"fill_cell() = {cell}\n")
         self._data.append(cell)
 
-    # noinspection PyTypeChecker
     def send_sheets_data(self) -> dict:
         """
         SEND the data list to my Google sheets document
@@ -147,25 +145,24 @@ class MhsSheetAccess:
         """
         self._lgr.debug( get_current_time() )
         if not self.vals:
-            self._lgr.exception("No Session started!")
-            return
+            msg = "No Session started!"
+            self._lgr.exception(msg)
+            return {"Response": msg}
 
-        response = {"Response": "None"}
         try:
             assets_body = {
                 "valueInputOption": "USER_ENTERED",
                 "data": self._data
             }
             response = self.vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
-
-            self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated!\n")
+            self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated.")
         except Exception as ssde:
             msg = repr(ssde)
             self._lgr.error(msg)
-            response["Response"] = msg
+            response = {"Exception":msg}
+
         return response
 
-    # noinspection PyTypeChecker
     def read_sheets_data(self, range_name:str) -> list:
         """
         READ data from my Google sheets document
@@ -173,17 +170,19 @@ class MhsSheetAccess:
         """
         self._lgr.debug( get_current_time() )
         if not self.vals:
-            self._lgr.exception("No Session started!")
-            return
+            msg = "No Session started!"
+            self._lgr.exception(msg)
+            return [msg]
 
         try:
             response = self.vals.get(spreadsheetId = self.__get_budget_id(), range = range_name).execute()
             rows = response.get("values", [])
-            self._lgr.info(F"{len(rows)} rows retrieved.\n")
+            self._lgr.info(F"{len(rows)} rows retrieved.")
         except Exception as rsde:
             msg = repr(rsde)
             self._lgr.error(msg)
             rows = [msg]
+
         return rows
 
     def test_read(self, range_name:str) -> list:
