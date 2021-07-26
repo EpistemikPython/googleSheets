@@ -11,7 +11,7 @@ __author__         = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
 __google_api_python_client_py3_version__ = "1.2"
 __created__ = "2019-04-07"
-__updated__ = "2021-05-19"
+__updated__ = "2021-07-26"
 
 import threading
 from decimal import Decimal
@@ -21,8 +21,8 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
-path.append("/newdata/dev/git/Python/utils")
-from mhsUtils import get_current_time, osp, lg
+path.append("/home/marksa/git/Python/utils")
+from mhsUtils import get_current_time, osp, lg, BASE_PYTHON_FOLDER
 from mhsLogging import get_simple_logger
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
@@ -34,7 +34,7 @@ BASE_ROW:str = "Base Row"
 ML_WORK_SHEET:str  = "ML Work"
 CALCULNS_SHEET:str = "Calculations"
 
-SECRETS_DIR = "/newdata/dev/git/Python/Google/Sheets/secrets"
+SECRETS_DIR = osp.join(BASE_PYTHON_FOLDER, "google" + osp.sep + "sheets" + osp.sep + "secrets")
 CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, "credentials" + osp.extsep + "json")
 
 SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
