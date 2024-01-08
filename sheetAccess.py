@@ -5,18 +5,19 @@
 #
 # includes some code from Google quickstart examples
 #
-# Copyright (c) 2019-21 Mark Sattolo <epistemik@gmail.com>
+# Copyright (c) 2024 Mark Sattolo <epistemik@gmail.com>
 
-__author__         = "Mark Sattolo"
+__author_name__    = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
-__google_api_python_client_py3_version__ = "1.2"
+__python_version__ = "3.6+"
+__google_api_python_client_version__ = "2.112.0"
 __created__ = "2019-04-07"
-__updated__ = "2021-07-26"
+__updated__ = "2024-01-05"
 
 import threading
 from decimal import Decimal
 from sys import path
-import pickle5 as pickle
+import pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -24,6 +25,8 @@ from typing import Union
 path.append("/home/marksa/git/Python/utils")
 from mhsUtils import get_current_time, osp, lg, BASE_PYTHON_FOLDER
 from mhsLogging import get_simple_logger
+# if using json credentials instead of pickled
+# from google.oauth2.credentials import Credentials
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
 # use: e.g. build("drive", "v3", http=http, cache_discovery=False)
@@ -64,27 +67,28 @@ BAL_2_SHEET:str      = "Balance 2"
 FILL_CELL_VAL = Union[str, Decimal]
 
 
-def get_credentials(logger:lg.Logger=None) -> pickle:
+def get_credentials(lgr:lg.Logger=None) -> pickle:
     """Get the proper credentials needed to write to the Google spreadsheet."""
     creds = None
     if osp.exists(GGL_SHEETS_TOKEN):
-        if logger: logger.info(F"osp.exists({GGL_SHEETS_TOKEN})")
+        if lgr: lgr.info(F"osp.exists({GGL_SHEETS_TOKEN})")
+        # creds = Credentials.from_authorized_user_file(GGL_SHEETS_TOKEN, SHEETS_RW_SCOPE)
         with open(GGL_SHEETS_TOKEN, "rb") as token:
             creds = pickle.load(token)
 
     # if there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
-        if logger: logger.info("creds is None or not creds.valid")
+        if lgr: lgr.info("creds is None or not creds.valid")
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            if logger: logger.debug("creds.refresh(Request())")
+            if lgr: lgr.debug("creds.refresh(Request())")
         else:
             flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SHEETS_RW_SCOPE)
             creds = flow.run_local_server()
-            if logger: logger.debug("creds = flow.run_local_server()")
+            if lgr: lgr.debug("creds = flow.run_local_server()")
         # save the credentials for the next run
         with open(GGL_SHEETS_TOKEN, "wb") as token:
-            if logger: logger.debug("pickle.dump()")
+            if lgr: lgr.debug("pickle.dump()")
             pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
 
     return creds
@@ -119,7 +123,7 @@ class MhsSheetAccess:
 
     def __get_budget_id(self) -> str:
         """Get the budget id string from the file in the secrets folder."""
-        with open(BUDGET_QTRLY_ID_FILE, "r") as bfp:
+        with open(BUDGET_QTRLY_ID_FILE) as bfp:
             fid = bfp.readline().strip()
         self._lgr.debug(F"{get_current_time()} / Budget Id = {fid}\n")
         return fid
@@ -190,7 +194,6 @@ class MhsSheetAccess:
         result = self.read_sheets_data(range_name)
         self.end_session()
         return result
-
 # END class MhsSheetAccess
 
 
