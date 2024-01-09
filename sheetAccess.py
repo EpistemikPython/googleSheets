@@ -10,23 +10,21 @@
 __author_name__    = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
 __python_version__ = "3.6+"
-__google_api_python_client_version__ = "2.112.0"
+__google_api_python_client_version__ = "2.113.0"
 __created__ = "2019-04-07"
-__updated__ = "2024-01-05"
+__updated__ = "2024-01-09"
 
 import threading
 from decimal import Decimal
 from sys import path
-import pickle
+from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from typing import Union
 path.append("/home/marksa/git/Python/utils")
-from mhsUtils import get_current_time, osp, lg, BASE_PYTHON_FOLDER
+from mhsUtils import get_current_time, osp, lg, BASE_PYTHON_FOLDER, JSON_LABEL
 from mhsLogging import get_simple_logger
-# if using json credentials instead of pickled
-# from google.oauth2.credentials import Credentials
 
 # see https://github.com/googleapis/google-api-python-client/issues/299
 # use: e.g. build("drive", "v3", http=http, cache_discovery=False)
@@ -39,18 +37,8 @@ CALCULNS_SHEET:str = "Calculations"
 
 SECRETS_DIR = osp.join(BASE_PYTHON_FOLDER, "google" + osp.sep + "sheets" + osp.sep + "secrets")
 CREDENTIALS_FILE:str = osp.join(SECRETS_DIR, "credentials" + osp.extsep + "json")
-
-SHEETS_RW_SCOPE:list     = ['https://www.googleapis.com/auth/spreadsheets']
-BASE_SHEETS_PICKLE:str   = "token.sheets.epistemik.rw.pickle"
-BASE_PICKLE_LOCATION:str = osp.join(SECRETS_DIR, BASE_SHEETS_PICKLE)
-SHEETS_EPISTEMIK_RW_TOKEN:dict = {
-    "P2" : BASE_PICKLE_LOCATION + '2' ,
-    "P3" : BASE_PICKLE_LOCATION + '3' ,
-    "P4" : BASE_PICKLE_LOCATION + '4' ,
-    "P5" : BASE_PICKLE_LOCATION + '5'
-}
-GGL_SHEETS_TOKEN:str = SHEETS_EPISTEMIK_RW_TOKEN["P5"]
-
+SHEETS_RW_SCOPE:list = ['https://www.googleapis.com/auth/spreadsheets']
+GGL_SHEETS_TOKEN:str = osp.join(SECRETS_DIR, "token" + osp.extsep + JSON_LABEL)
 # Spreadsheet ID
 BUDGET_QTRLY_ID_FILE:str = osp.join(SECRETS_DIR, "Budget-qtrly" + osp.extsep + "id")
 
@@ -66,15 +54,12 @@ BAL_2_SHEET:str      = "Balance 2"
 
 FILL_CELL_VAL = Union[str, Decimal]
 
-
-def get_credentials(lgr:lg.Logger=None) -> pickle:
+def get_credentials(lgr:lg.Logger=None) -> Credentials:
     """Get the proper credentials needed to write to the Google spreadsheet."""
     creds = None
     if osp.exists(GGL_SHEETS_TOKEN):
         if lgr: lgr.info(F"osp.exists({GGL_SHEETS_TOKEN})")
-        # creds = Credentials.from_authorized_user_file(GGL_SHEETS_TOKEN, SHEETS_RW_SCOPE)
-        with open(GGL_SHEETS_TOKEN, "rb") as token:
-            creds = pickle.load(token)
+        creds = Credentials.from_authorized_user_file(GGL_SHEETS_TOKEN, SHEETS_RW_SCOPE)
 
     # if there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -87,9 +72,8 @@ def get_credentials(lgr:lg.Logger=None) -> pickle:
             creds = flow.run_local_server()
             if lgr: lgr.debug("creds = flow.run_local_server()")
         # save the credentials for the next run
-        with open(GGL_SHEETS_TOKEN, "wb") as token:
-            if lgr: lgr.debug("pickle.dump()")
-            pickle.dump(creds, token, pickle.HIGHEST_PROTOCOL)
+        with open(GGL_SHEETS_TOKEN, "w") as gst:
+            gst.write( creds.to_json() )
 
     return creds
 
