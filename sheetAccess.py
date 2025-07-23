@@ -5,14 +5,14 @@
 #
 # includes some code from Google quickstart examples
 #
-# Copyright (c) 2024 Mark Sattolo <epistemik@gmail.com>
+# Copyright (c) 2025 Mark Sattolo <epistemik@gmail.com>
 
 __author_name__    = "Mark Sattolo"
 __author_email__   = "epistemik@gmail.com"
 __python_version__ = "3.6+"
 __google_api_python_client_version__ = "2.113.0"
 __created__ = "2019-04-07"
-__updated__ = "2024-01-09"
+__updated__ = "2025-07-02"
 
 import threading
 from decimal import Decimal
@@ -135,7 +135,7 @@ class MhsSheetAccess:
         if not self.vals:
             msg = "No Session started!"
             self._lgr.exception(msg)
-            return {"Response": msg}
+            return {"PROBLEM": msg}
 
         try:
             assets_body = {
@@ -145,9 +145,8 @@ class MhsSheetAccess:
             response = self.vals.batchUpdate(spreadsheetId=self.__get_budget_id(), body=assets_body).execute()
             self._lgr.info(F"{response.get('totalUpdatedCells')} cells updated.")
         except Exception as ssde:
-            msg = repr(ssde)
-            self._lgr.error(msg)
-            response = {"Exception":msg}
+            self._lgr.error(ssde)
+            raise ssde
 
         return response
 
@@ -167,9 +166,8 @@ class MhsSheetAccess:
             rows = response.get("values", [])
             self._lgr.info(F"{len(rows)} rows retrieved.")
         except Exception as rsde:
-            msg = repr(rsde)
-            self._lgr.error(msg)
-            rows = [msg]
+            self._lgr.error(rsde)
+            raise rsde
 
         return rows
 
